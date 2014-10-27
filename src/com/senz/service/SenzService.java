@@ -35,30 +35,42 @@ import com.senz.core.Beacon;
 import com.senz.core.Senz;
 import com.senz.core.BeaconWithSenz;
 
-//import static android.content.Context.BLUETOOTH_SERVICE;
-
+/***********************************************************************************************************************
+ * @ClassName:   SenzService
+ * @Author:      zhzhzoo
+ * @CommentBy:   Woodie
+ * @CommentAt:   Mon, Oct 27, 2014
+ * @Description: It is a *Service* to communicate with SenzManager. It will be instantiated after user bind service.
+ *
+ ***********************************************************************************************************************/
 public class SenzService extends Service {
 
-        public static final int MSG_START_TELEPATHY = 1;
-        public static final int MSG_STOP_TELEPATHY = 2;
-        public static final int MSG_TELEPATHY_RESPONSE = 3;
-        public static final int MSG_ERROR_RESPONSE = 4;
-        public static final int MSG_SET_SCAN_PERIOD = 5;
+    // The definition of Message type
+    public static final int MSG_START_TELEPATHY = 1;
+    public static final int MSG_STOP_TELEPATHY = 2;
+    public static final int MSG_TELEPATHY_RESPONSE = 3;
+    public static final int MSG_ERROR_RESPONSE = 4;
+    public static final int MSG_SET_SCAN_PERIOD = 5;
+
     private static final Intent START_SCAN_INTENT = new Intent("startScan");
     private static final Intent AFTER_SCAN_INTENT = new Intent("afterScan");
     private static final Intent LOOK_NEARBY_INTENT = new Intent("lookNearby");
+
     private PendingIntent mStartScanBroadcastPendingIntent;
     private PendingIntent mAfterScanBroadcastPendingIntent;
     private PendingIntent mLookNearbyBroadcastPendingIntent;
+
     private BroadcastReceiver mBluetoothBroadcastReceiver;
     private BroadcastReceiver mStartScanBroadcastReceiver;
     private BroadcastReceiver mAfterScanBroadcastReceiver;
     private BroadcastReceiver mLookNearbyBroadcastReceiver;
+
     private final Messenger mMessenger;
     private final BluetoothAdapter.LeScanCallback mLeScanCallback;
     private Messenger mReplyTo;
     private AlarmManager mAlarmManager;
     private BluetoothAdapter mAdapter;
+
     private ConcurrentHashMap<Beacon, Boolean> mBeaconsInACycle;
     private ConcurrentHashMap<Beacon, Boolean> mBeaconsNearBy;
     private TelepathyPeriod mTelepathyPeriod;
@@ -297,7 +309,6 @@ public class SenzService extends Service {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             Beacon beacon = Beacon.fromLeScan(device, rssi, scanRecord);
-
             if (beacon == null) {
                 L.v("Device" + device + "is not a beacon");
                 return;

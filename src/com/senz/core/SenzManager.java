@@ -29,7 +29,7 @@ import com.senz.utils.L;
 import com.senz.filter.Filter;
 
 /***********************************************************************************************************************
-`* @ClassName:   SenzManager
+ * @ClassName:   SenzManager
  * @Author:      zhzhzoo
  * @CommentBy:   Woodie
  * @CommentAt:   Mon, Oct 27, 2014
@@ -60,6 +60,7 @@ import com.senz.filter.Filter;
  *                     It will unbind Service.
  ***********************************************************************************************************************/
 public class SenzManager {
+
     private Context mContext;
     // Callback
     private TelepathyCallback mTelepathyCallback;
@@ -321,6 +322,8 @@ public class SenzManager {
     * @CommentBy:   Woodie
     * @CommentAt:   Mon, Oct 27, 2014
     * @Description: Left to the user-defined interface.
+    *               The member of TelepathyCallback named onDiscover will be called in *respondSenz()*.
+    *               The member of TelepathyCallback named onLeave will be called in *reportUnseenAndUpdateTime()*.
     */
     public interface TelepathyCallback {
         public void onDiscover(List<Senz> senzes);
