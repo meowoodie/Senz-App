@@ -33,7 +33,8 @@ import com.senz.filter.Filter;
  * @Author:      zhzhzoo
  * @CommentBy:   Woodie
  * @CommentAt:   Mon, Oct 27, 2014
- * @Description: It is a *Client* to communicate with SenzService. Users should Instantiate it first!
+ * @Description: It is a *Client* to communicate with SenzService. Users should Instantiate it first! And following is
+ *               some user interface.
  *               # TelepathyCallback:
  *                     It has a callback, named TelepathyCallback, used to report the senz info.
  *                     a. onDiscover(): used in function respondSenz(). It will be called when SenzService
@@ -85,6 +86,7 @@ public class SenzManager {
         this.mServiceConnection = new InternalServiceConnection();
         // Instantiate the Messenger that used to get message from SenzService
         this.mIncomingMessenger = new Messenger(new IncomingHandler());
+
         this.mLastDiscovered = new ArrayList<Senz>();
     }
 
@@ -127,8 +129,12 @@ public class SenzManager {
      * @Function:    < init >
      * @CommentBy:   Woodie
      * @CommentAt:   Thur, Oct 24, 2014
-     * @Description: First, it will call hasBluetooth() and bluetoothEnabled() to check device's bluetooth state;
-     *               Second,
+     * @Description: First, It will call hasBluetooth() and bluetoothEnabled() to check device's bluetooth state;
+     *               Second, Check whether the connection exists; (mServiceMessenger != null ?)
+     *               Third, It binds service to SenzService, it will lead Android sys to call SenzService's onBind(),
+     *               then onBind() will return a IBinder object to SenzManager, the IBinder can be catched by SenzManager's
+     *               implemention of the interface - ServiceConnection 's onServiceConnected(). onServiceConnected()
+     *               will use this IBinder to instantiate a Messenger, which used to communicate with SenzService.
      */
     public void init() throws SenzException {
         L.i("initializing senz manager");
@@ -150,6 +156,12 @@ public class SenzManager {
         }
     }
 
+   /*
+    * @Function:    < end >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Mon, Oct 27, 2014
+    * @Description: Release all of resources and unbind service from SenzService.
+    */
     public void end() {
         if (!isConnected())
             return;
@@ -161,6 +173,15 @@ public class SenzManager {
         return this.mServiceMessenger != null;
     }
 
+    /*
+     * @Function:    < startTelepathy >
+     * @CommentBy:   Woodie
+     * @CommentAt:   Mon, Oct 27, 2014
+     * @Description: The main function of startTelepathy is passed a user-defined callback function - interface TelepathyCallback.
+     *               The member of TelepathyCallback named onDiscover will be called in *respondSenz()*.
+     *               The member of TelepathyCallback named onLeave will be called in *reportUnseenAndUpdateTime()*.
+     *               Then call internalStartTelepathy() to instantiate message and send this message to SenzService.
+     */
     public void startTelepathy(TelepathyCallback cb) throws RemoteException, SenzException {
         if (cb == null)
             throw new NullPointerException();
@@ -171,6 +192,14 @@ public class SenzManager {
             internalStartTelepathy();
     }
 
+   /*
+    * @Function:    < internalStartTelepathy >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Mon, Oct 27, 2014
+    * @Description: Instantiate a Massage object, which obtain a MSG_START_TELEPATHY message and attach a replyto Message
+    *               object, and send this message to SenzService to start listening!
+    *               It's the first message that SenzManager send to SenzService.
+    */
     private void internalStartTelepathy() {
         Message startTelepathyMsg = Message.obtain(null, SenzService.MSG_START_TELEPATHY);
         startTelepathyMsg.replyTo = this.mIncomingMessenger;
@@ -206,6 +235,7 @@ public class SenzManager {
         return this.mLastDiscovered;
     }
 
+
     private void reportUnseenAndUpdateTime(ArrayList<Senz> senzes) {
         long now = System.currentTimeMillis();
         ArrayList<Senz> unseens = new ArrayList<Senz>();
@@ -231,6 +261,16 @@ public class SenzManager {
             L.d("Unhandled error: " + reason);
     }
 
+   /*
+    * @Class:       < IncomingHandler >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Mon, Oct 27, 2014
+    * @Description: If there is no IncomingHandler, then SenzManager won't receive message from SenzService.
+    *               If we need receive SenzService's respond, we should instantiate a Handler, and use this instantiation
+    *               of Handler to generate a Messenger.
+    *               Finally, we send this Messenger as mServiceMessenger's replyTo to SenzService.
+    *               So SenzManager can send message to SenzManager through this Messenger.
+    */
     private class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -251,6 +291,16 @@ public class SenzManager {
         }
     }
 
+   /*
+    * @Class:       < InternalServiceConnection >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Mon, Oct 27, 2014
+    * @Description: The implemention of ServiceConnection. This interface 's instantiation will be triggered while onbind
+    *               SenzService of unbind SenzService.
+    *               When onbinding SenzService, It will get IBinder from SenzService, and use the IBinder to generate
+    *               a instantiation of Messenger to communicate with SenzService.
+    * @Hint:        The instantiation of InternalServiceConnection used to init the bind (It's a para of bindService()).
+    */
     private class InternalServiceConnection implements ServiceConnection {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -266,6 +316,12 @@ public class SenzManager {
         }
     }
 
+   /*
+    * @interface:   < TelepathyCallback >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Mon, Oct 27, 2014
+    * @Description: Left to the user-defined interface.
+    */
     public interface TelepathyCallback {
         public void onDiscover(List<Senz> senzes);
         public void onLeave(List<Senz> senzes);
