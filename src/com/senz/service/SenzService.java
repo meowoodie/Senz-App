@@ -35,6 +35,8 @@ import com.senz.core.Beacon;
 import com.senz.core.Senz;
 import com.senz.core.BeaconWithSenz;
 
+//import static android.content.Context.BLUETOOTH_SERVICE;
+
 public class SenzService extends Service {
 
         public static final int MSG_START_TELEPATHY = 1;
@@ -88,8 +90,8 @@ public class SenzService extends Service {
 
         this.mGPSInfo = new GPSInfo(this);
         
-        this.mAlarmManager = (AlarmManager) getSystemService("alarm");
-        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService("bluetooth");
+        this.mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         this.mAdapter = bluetoothManager.getAdapter();
         this.mAfterScanTask = new AfterScanTask();
 

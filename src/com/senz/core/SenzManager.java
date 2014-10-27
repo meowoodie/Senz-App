@@ -118,17 +118,17 @@ public class SenzManager {
             L.e("SenzService may be not declared in AndroidManifest.xml.");
             return false;
         }
-        BluetoothManager bluetoothManager = (BluetoothManager) this.mContext.getSystemService("bluetooth");
+        BluetoothManager bluetoothManager = (BluetoothManager) this.mContext.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter adapter = bluetoothManager.getAdapter();
         return adapter != null && adapter.isEnabled();
     }
 
     /*
-     * @Function       : < init >
-     * @CodeComment by : Woodie
-     * @CommentTime    : Thur, Oct 24, 2014
-     * @Description    : First, it will call hasBluetooth() and bluetoothEnabled() to check device's bluetooth state;
-     *                   Second,
+     * @Function:    < init >
+     * @CommentBy:   Woodie
+     * @CommentAt:   Thur, Oct 24, 2014
+     * @Description: First, it will call hasBluetooth() and bluetoothEnabled() to check device's bluetooth state;
+     *               Second,
      */
     public void init() throws SenzException {
         L.i("initializing senz manager");
