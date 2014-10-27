@@ -28,21 +28,62 @@ import com.senz.exception.SenzException;
 import com.senz.utils.L;
 import com.senz.filter.Filter;
 
+/***********************************************************************************************************************
+`* @ClassName:   SenzManager
+ * @Author:      zhzhzoo
+ * @CommentBy:   Woodie
+ * @CommentAt:   Mon, Oct 27, 2014
+ * @Description: It is a *Client* to communicate with SenzService. Users should Instantiate it first!
+ *               # TelepathyCallback:
+ *                     It has a callback, named TelepathyCallback, used to report the senz info.
+ *                     a. onDiscover(): used in function respondSenz(). It will be called when SenzService
+ *                        send MSG_TELEPATHY_RESPONSE message.
+ *                     b. onLeave(): used in function reportUnseenAndUpdateTime(), It will be called when
+ *                        SenzService send MSG_TELEPATHY_RESPONSE message.
+ *               # getLastDiscoveredSenzes :
+ *                     Users can call this public function when they has instantiated the SenzManager,
+ *                     tryed init(), and tryed startTelepathy(). It will return an senz array named mLastDiscovered.
+ *               # Init:
+ *                     User should try it after instantiation of SenzManager,
+ *                     It check the bluetooth device status. Then bind service to SenzService.
+ *               # startTelepathy:
+ *                     Users should call it if they need start listening.
+ *                     It will send a MSG_START_TELEPATHY message and a Handler(Used to receive respond from SenzService)
+ *                     to SenzService.
+ *               # stopTelepathy:
+ *                     Users should call it if they need stop listening.
+ *                     It will send a MSG_STOP_TELEPATHY message and a Handler(Used to receive respond from SenzService)
+ *                     to SenzService.
+ *               # end:
+ *                     Users should call it if they need release all resources.
+ *                     It will unbind Service.
+ ***********************************************************************************************************************/
 public class SenzManager {
     private Context mContext;
+    // Callback
     private TelepathyCallback mTelepathyCallback;
     private ErrorHandler mErrorHandler;
+    // Used to send massage to SenzService
+    // The message type definition is in SenzService (incomingHandler)
     private Messenger mServiceMessenger;
+    // Used to receive message from SenzService
+    // The message type definition is in SenzManager (incomingHandler)
     private Messenger mIncomingMessenger;
+    // It mainly used to get IBinder from SenzService and instantiate a Messenger with the IBinder.
+    // This Messenger used to send message to SenzService.
     private ServiceConnection mServiceConnection;
+
     private boolean mStarted;
     private HashMap<Senz, Long> mLastSeen;
     private Filter mFilter;
+    // It stores senz info
     private ArrayList<Senz> mLastDiscovered;
 
     public SenzManager(Context context) {
         this.mContext = context;
+        // Instantiate the implemention of ServiceConnection.
         this.mServiceConnection = new InternalServiceConnection();
+        // Instantiate the Messenger that used to get message from SenzService
         this.mIncomingMessenger = new Messenger(new IncomingHandler());
         this.mLastDiscovered = new ArrayList<Senz>();
     }
@@ -82,6 +123,13 @@ public class SenzManager {
         return adapter != null && adapter.isEnabled();
     }
 
+    /*
+     * @Function       : < init >
+     * @CodeComment by : Woodie
+     * @CommentTime    : Thur, Oct 24, 2014
+     * @Description    : First, it will call hasBluetooth() and bluetoothEnabled() to check device's bluetooth state;
+     *                   Second,
+     */
     public void init() throws SenzException {
         L.i("initializing senz manager");
 

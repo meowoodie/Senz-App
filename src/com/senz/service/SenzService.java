@@ -37,11 +37,11 @@ import com.senz.core.BeaconWithSenz;
 
 public class SenzService extends Service {
 
-    public static final int MSG_START_TELEPATHY = 1;
-    public static final int MSG_STOP_TELEPATHY = 2;
-    public static final int MSG_TELEPATHY_RESPONSE = 3;
-    public static final int MSG_ERROR_RESPONSE = 4;
-    public static final int MSG_SET_SCAN_PERIOD = 5;
+        public static final int MSG_START_TELEPATHY = 1;
+        public static final int MSG_STOP_TELEPATHY = 2;
+        public static final int MSG_TELEPATHY_RESPONSE = 3;
+        public static final int MSG_ERROR_RESPONSE = 4;
+        public static final int MSG_SET_SCAN_PERIOD = 5;
     private static final Intent START_SCAN_INTENT = new Intent("startScan");
     private static final Intent AFTER_SCAN_INTENT = new Intent("afterScan");
     private static final Intent LOOK_NEARBY_INTENT = new Intent("lookNearby");
