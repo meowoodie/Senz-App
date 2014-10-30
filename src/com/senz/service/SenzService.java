@@ -431,7 +431,7 @@ public class SenzService extends Service {
         };
     }
 
-    private BroadcastReceiver createStartScanBroadCastReceiver() {
+    /*private BroadcastReceiver createStartScanBroadCastReceiver() {
         return new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -443,7 +443,7 @@ public class SenzService extends Service {
                 });
             }
         };
-    }
+    }*/
 
 
     // It will bind a Notification Intent to AlarmManager.
