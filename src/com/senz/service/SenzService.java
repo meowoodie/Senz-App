@@ -108,6 +108,7 @@ public class SenzService extends Service {
     private GPSInfo.GPSInfoListener mGPSInfoListener;
 
     public SenzService() {
+        // Instantiation of Messenger which used to communicate with SenzManager.
         this.mMessenger       = new Messenger(new IncomingHandler());
         this.mLeScanCallback  = new InternalLeScanCallback();
         this.mBeaconsInACycle = new ConcurrentHashMap();
@@ -184,11 +185,14 @@ public class SenzService extends Service {
 
         super.onDestroy();
     }
-
+    // If SenzManager bindService, then this function will be called.
+    // It will return an IBinder to Client(SenzManager)'s onServiceConnected(), so Client can instantiate a Massenger.
+    // to communicate with SenzService.
     public IBinder onBind(Intent intent) {
         return this.mMessenger.getBinder();
     }
 
+    // When you start scanning, you will set an alarm for mAfterScanBroadcastPendingIntent to notify the mAfterScanBroadcastReceiver
     private void startScanning() {
         if (this.mScanning) {
             L.d("Scanning already in progress, not starting another");
@@ -209,6 +213,7 @@ public class SenzService extends Service {
         setAlarm(this.mAfterScanBroadcastPendingIntent, this.mTelepathyPeriod.scanMillis);
     }
 
+    // It will remove all callbacks.
     private void stopScanning() {
         try {
             this.mScanning = false;
@@ -220,6 +225,9 @@ public class SenzService extends Service {
         }
     }
 
+    // Including :
+    // - Removing handler's callbacks.
+    // - Canceling AlarmManager's all Notification Intent.
     private void removeAllCallbacks()
     {
         this.mHandler.removeCallbacks(this.mAfterScanTask);
@@ -247,18 +255,27 @@ public class SenzService extends Service {
         setAlarm(this.mLookNearbyBroadcastPendingIntent, this.mTelepathyPeriod.GPSMillis);
     }
 
+    // It will bind a Notification Intent to AlarmManager.
     private void setAlarm(PendingIntent pendingIntent, long delayMillis) {
         this.mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 SystemClock.elapsedRealtime() + delayMillis, pendingIntent);
     }
 
+    /*
+    * @Function:    < Instantiation of BroadcastReceiver >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Thur, Oct 30, 2014
+    * @Description: The following definition of BroadcastReceivers mainly define onReceive().
+    *               The onReceive() will be triggered when BroadcastReceiver receive the corresponding notifications.
+    * @Hint:        If you need do some time-consuming task, you should run the task in another thread by a service.
+    */
+    // Bluetooth - BroadcastReceiver
     private BroadcastReceiver createBluetoothBroadcastReceiver() {
         return new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if ("android.bluetooth.adapter.action.STATE_CHANGED".equals(intent.getAction())) {
                     switch(intent.getIntExtra("android.bluetooth.adapter.extra.STATE", -1)) {
-
                         case BluetoothAdapter.STATE_ON:
                             SenzService.this.mHandler.post(new Runnable() {
                                 @Override
@@ -285,7 +302,8 @@ public class SenzService extends Service {
             }
         };
     }
-
+    // AfterScan - BroadcastReceiver
+    // - Start a thread to run "AfterScan" Task
     private BroadcastReceiver createAfterScanBroadcastReceiver() {
         return new BroadcastReceiver() {
             @Override
@@ -344,6 +362,7 @@ public class SenzService extends Service {
         };
     }
 
+    //
     private class InternalLeScanCallback implements BluetoothAdapter.LeScanCallback {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -356,6 +375,8 @@ public class SenzService extends Service {
         }
     }
 
+    // It is used to instantiate the Messenger.
+    // The IncomingHandle defines what SenzService will do when SenzService receive corresponding msg.
     private class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -397,9 +418,13 @@ public class SenzService extends Service {
             final Message response = Message.obtain(null, MSG_TELEPATHY_RESPONSE);
             for (Map.Entry<Beacon, Boolean> e : SenzService.this.mBeaconsInACycle.entrySet())
                 beacons.add(e.getKey());
+            //
             Query.senzesFromBeaconsAsync(
+                //
                 beacons,
+                //
                 SenzService.this.mLocation,
+                //
                 new Query.SenzReadyCallback() {
                     @Override
                     public void onSenzReady(ArrayList<Senz> senzes) {
@@ -418,6 +443,7 @@ public class SenzService extends Service {
                         SenzService.this.setAlarmStart();
                     }
                 },
+                //
                 new Query.ErrorHandler() {
                     // on error resume next
                     @Override
@@ -425,7 +451,8 @@ public class SenzService extends Service {
                         L.e("query error", e);
                         SenzService.this.setAlarmStart();
                     }
-                });
+                }
+            );// -------Query.senzesFromBeaconsAsync
         }
     }
 
