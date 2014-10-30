@@ -49,6 +49,32 @@ public class Query {
         return new ArrayList<Senz>(result);
     }
 
+    static public void senzesFromLocationAsync(final Location location, final SenzReadyCallback cb, final ErrorHandler eh) {
+        // It's a Class that can make your defined callbacks running in an defined order.
+        Asyncfied.runAsyncfiable(new Asyncfied.Asyncfiable<ArrayList<Senz>>() {
+            // First, it will try runAndReturn first, and get a return value(this value will be passed to onReturn())
+            // - senzesFromLocation: send location to AVOSCloud Server to get Senz info back.
+            @Override
+            public ArrayList<Senz> runAndReturn() throws IOException {
+                return senzesFromLocation(location);
+            }
+            // Finally, it will handle the result which is returned by runAndReturn()
+            // - onSenzReady: It is defined by user, here we can use it to get senz result.
+            @Override
+            public void onReturn(ArrayList<Senz> result) {
+                cb.onSenzReady(result);
+            }
+            // If it throw an error, it will run this.
+            @Override
+            public void onError(Exception e) {
+                L.i("query location error");
+                eh.onError(e);
+            }
+        });
+    }
+
+    // It seems like senzesFromLocationAsync. No more comment.
+    // The only difference is runAndReturn(), it will run senzesFromBeacons().
     static public void senzesFromBeaconsAsync(final Collection<Beacon> beacons, final Location location, final SenzReadyCallback cb, final ErrorHandler eh) {
         Asyncfied.runAsyncfiable(new Asyncfied.Asyncfiable<ArrayList<Senz>>() {
             @Override
@@ -71,30 +97,11 @@ public class Query {
         });
     }
 
-    static public void senzesFromLocationAsync(final Location location, final SenzReadyCallback cb, final ErrorHandler eh) {
-        Asyncfied.runAsyncfiable(new Asyncfied.Asyncfiable<ArrayList<Senz>>() {
-            @Override
-            public ArrayList<Senz> runAndReturn() throws IOException {
-                return senzesFromLocation(location);
-            }
-
-            @Override
-            public void onReturn(ArrayList<Senz> result) {
-                cb.onSenzReady(result);
-            }
-
-            @Override
-            public void onError(Exception e) {
-                L.i("query location error");
-                eh.onError(e);
-            }
-        });
-    }
-
+    // It's an interface for user to define callback, when avoscloud server return the senz info.
     public interface SenzReadyCallback {
         public void onSenzReady(ArrayList<Senz> senzes);
     }
-    
+    // It's an interface for user to define callback, when send query request throw a error.
     public interface ErrorHandler {
         public void onError(Exception e);
     }

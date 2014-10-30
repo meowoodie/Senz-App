@@ -25,7 +25,7 @@ import com.senz.core.Beacon;
 import com.senz.core.BeaconWithSenz;
 
 public class Network {
-    private static String queryUrl = "https://cn.avoscloud.com/1/functions/";
+    private static String queryUrl = "https://cn.avoscloud.com/1.1/functions/";
     private static int timeout = (int) TimeUnit.SECONDS.toMillis(10);
     private static String AVOS_ID = "vigxpgtjk8w6ruxcfaw4kju3ssyttgcqz38y6y6uablqivjd";
     private static String AVOS_KEY = "dxbawm2hh0338hb37wap59gticgr92dpajd80tzekrgv1ptw";

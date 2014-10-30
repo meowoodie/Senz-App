@@ -185,14 +185,26 @@ public class SenzService extends Service {
 
         super.onDestroy();
     }
-    // If SenzManager bindService, then this function will be called.
-    // It will return an IBinder to Client(SenzManager)'s onServiceConnected(), so Client can instantiate a Massenger.
-    // to communicate with SenzService.
+
+   /*
+    * @Function:    < onBind >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Thur, Oct 30, 2014
+    * @Description: If SenzManager bindService, then this function will be called.
+    *               It will return an IBinder to Client(SenzManager)'s onServiceConnected(), so Client can instantiate a
+    *               Massenger. to communicate with SenzService.
+    */
     public IBinder onBind(Intent intent) {
         return this.mMessenger.getBinder();
     }
 
-    // When you start scanning, you will set an alarm for mAfterScanBroadcastPendingIntent to notify the mAfterScanBroadcastReceiver
+   /*
+    * @Function:    < Broadcast Notification(Intent) >
+    * @CommentBy:   Woodie
+    * @CommentAt:   Thur, Oct 30, 2014
+    * @Description: Following functions are used to broadcast a various of Notifications to Broadcast Receiver.
+    */
+    // Broadcast AfterScan notification
     private void startScanning() {
         if (this.mScanning) {
             L.d("Scanning already in progress, not starting another");
@@ -211,6 +223,110 @@ public class SenzService extends Service {
         this.mScanning = true;
         removeAllCallbacks();
         setAlarm(this.mAfterScanBroadcastPendingIntent, this.mTelepathyPeriod.scanMillis);
+    }
+
+    // Broadcast LookNearby notification
+    private void lookNearby() {
+        // Cancel LookNearby Intent which already exists.
+        this.mAlarmManager.cancel(this.mLookNearbyBroadcastPendingIntent);
+        // It will send query request to avoscloud.
+        // - send:    Location (got by GPS)
+        // - receive: Senz Info (from AVOSCloud Server)
+        Query.senzesFromLocationAsync(
+            // Location is a useful para, others are useless.(It will pass to Asyncfied.runAsyncfiable)
+            this.mLocation,
+            // Defined operation after Asyncfied return.(It will pass to Asyncfied.runAsyncfiable)
+            new Query.SenzReadyCallback() {
+                // Here the para senzes is the result which is got back from avoscloud server.
+                @Override
+                public void onSenzReady(ArrayList<Senz> senzes) {
+                    // Here do nothing!!!!!!!!!!!
+                    // I will put my code here soon.
+                }
+            },
+            // Defined operation when throw an error.(It will pass to Asyncfied.runAsyncfiable)
+            new Query.ErrorHandler() {
+                // on error, wait 1 min then query again
+                @Override
+                public void onError(Exception e) {
+                    setAlarm(SenzService.this.mLookNearbyBroadcastPendingIntent, TimeUnit.MINUTES.toMillis(1));
+                }
+            });
+        setAlarm(this.mLookNearbyBroadcastPendingIntent, this.mTelepathyPeriod.GPSMillis);
+    }
+
+    private class AfterScanTask implements Runnable {
+        @Override
+        public void run() {
+            SenzService.this.stopScanning();
+
+            ArrayList<Beacon> beacons = new ArrayList<Beacon>();
+            final Message response = Message.obtain(null, MSG_TELEPATHY_RESPONSE);
+            for (Map.Entry<Beacon, Boolean> e : SenzService.this.mBeaconsInACycle.entrySet())
+                beacons.add(e.getKey());
+            // It will send query request to avoscloud.
+            // - send:    Location (got by GPS), beacons (got by bluetooth)
+            // - receive: Senz Info (from AVOSCloud Server)
+            Query.senzesFromBeaconsAsync(
+                    // It's a para that is sent to avoscloud server
+                    beacons,
+                    // It's a para that is sent to avoscloud server
+                    SenzService.this.mLocation,
+                    // Defined operation after Asyncfied return.(It will pass to Asyncfied.runAsyncfiable)
+                    new Query.SenzReadyCallback() {
+                        // Here the para senzes is the result which is got back from avoscloud server.
+                        @Override
+                        public void onSenzReady(ArrayList<Senz> senzes) {
+                            // put senz info into msg which will be sent back to SenzManager.
+                            response.getData().putParcelableArrayList("senzes", senzes);
+                            try {
+                                // Send msg back to SenzManager.
+                                L.i("query complete, got " + senzes.size() + " senzes");
+                                mReplyTo.send(response);
+                            }
+                            catch (RemoteException e) {
+                                L.e("Error while delivering responses", e);
+                            }
+                            // clear cache in mBeaconsInACycle(bluetooth's info)
+                            SenzService.this.mBeaconsInACycle.clear();
+                            if (SenzService.this.mStarted == false)
+                                return;
+                            SenzService.this.setAlarmStart();
+                        }
+                    },
+                    //
+                    new Query.ErrorHandler() {
+                        // on error resume next
+                        @Override
+                        public void onError(Exception e) {
+                            L.e("query error", e);
+                            SenzService.this.setAlarmStart();
+                        }
+                    }
+            );// -------Query.senzesFromBeaconsAsync
+        }
+    }
+
+    //
+    private class InternalLeScanCallback implements BluetoothAdapter.LeScanCallback {
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            Beacon beacon = Beacon.fromLeScan(device, rssi, scanRecord);
+            if (beacon == null) {
+                L.v("Device" + device + "is not a beacon");
+                return;
+            }
+            SenzService.this.mBeaconsInACycle.put(beacon, true);
+        }
+    }
+
+    private class InternalGPSInfoListener implements GPSInfo.GPSInfoListener {
+        @Override
+        public void onGPSInfoChanged(Location location) {
+            L.i("gps info changed: " + location);
+            SenzService.this.mLocation = location;
+            lookNearby();
+        }
     }
 
     // It will remove all callbacks.
@@ -235,33 +351,7 @@ public class SenzService extends Service {
         this.mAlarmManager.cancel(this.mStartScanBroadcastPendingIntent);
     }
 
-    private void lookNearby() {
-        this.mAlarmManager.cancel(this.mLookNearbyBroadcastPendingIntent);
-
-        Query.senzesFromLocationAsync(
-            this.mLocation,
-            new Query.SenzReadyCallback() {
-                @Override
-                public void onSenzReady(ArrayList<Senz> senzes) {
-                }
-            },
-            new Query.ErrorHandler() {
-                // on error, wait 1 min then query again
-                @Override
-                public void onError(Exception e) {
-                    setAlarm(SenzService.this.mLookNearbyBroadcastPendingIntent, TimeUnit.MINUTES.toMillis(1));
-                }
-            });
-        setAlarm(this.mLookNearbyBroadcastPendingIntent, this.mTelepathyPeriod.GPSMillis);
-    }
-
-    // It will bind a Notification Intent to AlarmManager.
-    private void setAlarm(PendingIntent pendingIntent, long delayMillis) {
-        this.mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime() + delayMillis, pendingIntent);
-    }
-
-    /*
+   /*
     * @Function:    < Instantiation of BroadcastReceiver >
     * @CommentBy:   Woodie
     * @CommentAt:   Thur, Oct 30, 2014
@@ -341,13 +431,6 @@ public class SenzService extends Service {
         };
     }
 
-    private void setAlarmStart() {
-        if (this.mTelepathyPeriod.waitMillis == 0L)
-            this.startScanning();
-        else
-            this.setAlarm(this.mStartScanBroadcastPendingIntent, this.mTelepathyPeriod.waitMillis);
-    }
-
     private BroadcastReceiver createStartScanBroadCastReceiver() {
         return new BroadcastReceiver() {
             @Override
@@ -362,18 +445,21 @@ public class SenzService extends Service {
         };
     }
 
-    //
-    private class InternalLeScanCallback implements BluetoothAdapter.LeScanCallback {
-        @Override
-        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            Beacon beacon = Beacon.fromLeScan(device, rssi, scanRecord);
-            if (beacon == null) {
-                L.v("Device" + device + "is not a beacon");
-                return;
-            }
-            SenzService.this.mBeaconsInACycle.put(beacon, true);
-        }
+
+    // It will bind a Notification Intent to AlarmManager.
+    private void setAlarm(PendingIntent pendingIntent, long delayMillis) {
+        this.mAlarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + delayMillis, pendingIntent);
     }
+
+    private void setAlarmStart() {
+        if (this.mTelepathyPeriod.waitMillis == 0L)
+            this.startScanning();
+        else
+            this.setAlarm(this.mStartScanBroadcastPendingIntent, this.mTelepathyPeriod.waitMillis);
+    }
+
+
 
     // It is used to instantiate the Messenger.
     // The IncomingHandle defines what SenzService will do when SenzService receive corresponding msg.
@@ -409,59 +495,4 @@ public class SenzService extends Service {
         }
     }
 
-    private class AfterScanTask implements Runnable {
-        @Override
-        public void run() {
-            SenzService.this.stopScanning();
-
-            ArrayList<Beacon> beacons = new ArrayList<Beacon>();
-            final Message response = Message.obtain(null, MSG_TELEPATHY_RESPONSE);
-            for (Map.Entry<Beacon, Boolean> e : SenzService.this.mBeaconsInACycle.entrySet())
-                beacons.add(e.getKey());
-            //
-            Query.senzesFromBeaconsAsync(
-                //
-                beacons,
-                //
-                SenzService.this.mLocation,
-                //
-                new Query.SenzReadyCallback() {
-                    @Override
-                    public void onSenzReady(ArrayList<Senz> senzes) {
-                        response.getData().putParcelableArrayList("senzes", senzes);
-                        try {
-                            L.i("query complete, got " + senzes.size() + " senzes");
-                            mReplyTo.send(response);
-                        }
-                        catch (RemoteException e) {
-                            L.e("Error while delivering responses", e);
-                        }
-
-                        SenzService.this.mBeaconsInACycle.clear();
-                        if (SenzService.this.mStarted == false)
-                            return;
-                        SenzService.this.setAlarmStart();
-                    }
-                },
-                //
-                new Query.ErrorHandler() {
-                    // on error resume next
-                    @Override
-                    public void onError(Exception e) {
-                        L.e("query error", e);
-                        SenzService.this.setAlarmStart();
-                    }
-                }
-            );// -------Query.senzesFromBeaconsAsync
-        }
-    }
-
-    private class InternalGPSInfoListener implements GPSInfo.GPSInfoListener {
-        @Override
-        public void onGPSInfoChanged(Location location) {
-            L.i("gps info changed: " + location);
-            SenzService.this.mLocation = location;
-            lookNearby();
-        }
-    }
 }

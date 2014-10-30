@@ -5,6 +5,7 @@ import java.lang.Thread;
 import com.senz.utils.L;
 
 public class Asyncfied {
+    // It's a Interface for user to define their own callback.
     public interface Asyncfiable<T> {
         public T runAndReturn() throws Exception;
         public void onReturn(T t);
@@ -13,12 +14,19 @@ public class Asyncfied {
 
     private Asyncfiable mAsyncfied;
 
+    // Check Definition of All callbacks(Asyncfiable<T>), and save it.
     public Asyncfied(Asyncfiable a) {
+        // Check whether or not has user defined interface Asyncfiable<T>
         if (a == null)
             throw new NullPointerException();
+        // copy the Asyncfiable<T> to private variable mAsyncfied.
         this.mAsyncfied = a;
     }
 
+    // Create a new thread, and do:
+    // - try mAsyncfied's runAndReturn(), and it will return ret.
+    // - if throw a error, then excute mAsyncfied's onError(e)
+    // - finally, return mAsyncfied's onReturn(ret)
     public void run() {
         new Thread(new Runnable() {
             @Override
@@ -39,6 +47,8 @@ public class Asyncfied {
         }).start();
     }
 
+    // It's a user-interface, User call this function and
+    // do the callbacks(runAndReturn(), onReturn(T t), onError(Exception e)) in a defined order.
     public static void runAsyncfiable(Asyncfiable a) {
         Asyncfied as = new Asyncfied(a);
         as.run();
