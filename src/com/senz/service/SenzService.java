@@ -41,6 +41,9 @@ import com.senz.core.BeaconWithSenz;
  * @CommentBy:   Woodie
  * @CommentAt:   Mon, Oct 27, 2014
  * @Description: It is a *Service* to communicate with SenzManager. It will be instantiated after binding service.
+ *               - Defined Intent (It will be sent to broadcast receiver), Pending Intent (It will wrapper the Intent),
+ *                         Broadcast Receiver (It will receive the notification, and call onReceive())
+ *               -
  *               -
  ***********************************************************************************************************************/
 public class SenzService extends Service {
@@ -70,14 +73,14 @@ public class SenzService extends Service {
     * About *Broadcast Receiver*
     * Broadcast Receiver uses for receiving and processing a broadcast notification. Most of the broadcast
     * is a system initiated, such as geographic transformation, lack of electricity, the call letters and the
-    * like. A program may also broadcast notice. Program can have any number of broadcast receivers respond
+    * like. A program may also broadcast notification. Program can have any number of broadcast receivers respond
     * to the notification that it thinks important.
     * Typically an application or system of our own in certain events (the battery is low, the calls to SMS)
     * will broadcast an Intent, we can use the Broadcast Receiver register an Intent to listen to them and get
     * the data of Intent.
     */
-    // They are used to receiving the notices (We have defined those notices, actually the notice is a intent)
-    // If they receive a notice(intent), they will call function onReceive.
+    // They are used to receiving the notification (We have defined those notices, actually the notice is a intent)
+    // If they receive a notification(intent), they will call function - onReceive().
     // - TIPS: Receiver is active only while onReceive running. It is not inactive until onReceive return.
     //         So, some time-cosuming operation should be in another single thread.(This operation should be done by a
     //         Service)
@@ -122,28 +125,38 @@ public class SenzService extends Service {
         L.i("Creating service");
 
         this.mGPSInfo = new GPSInfo(this);
-        
+
+        // Instantiation of AlarmManager.
+        // - It broadcasts a notification after a setting time if you call set().
         this.mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        // Instantiation of BluetoothManager.
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         this.mAdapter = bluetoothManager.getAdapter();
+        // Instantiation of interface - Runnable
         this.mAfterScanTask = new AfterScanTask();
 
         this.mHandlerThread = new HandlerThread("SenzServiceThread", Process.THREAD_PRIORITY_BACKGROUND);
         this.mHandlerThread.start();
         this.mHandler = new Handler(this.mHandlerThread.getLooper());
 
+        // Instantiation of Broadcast Receiver
+        // It define how to respond notice when Broadcast Receiver receive a notice
         this.mBluetoothBroadcastReceiver = createBluetoothBroadcastReceiver();
         this.mStartScanBroadcastReceiver = createStartScanBroadcastReceiver();
         this.mAfterScanBroadcastReceiver = createAfterScanBroadcastReceiver();
         this.mLookNearbyBroadcastReceiver = createLookNearbyBroadcastReceiver();
 
+        // Register the Broadcast Receiver.
+        // It binds Intent(notification) to Broadcast Receiver.
         registerReceiver(this.mBluetoothBroadcastReceiver, new IntentFilter("android.bluetooth.adapter.action.STATE_CHANGED"));
         registerReceiver(this.mStartScanBroadcastReceiver, new IntentFilter("startScan"));
         registerReceiver(this.mAfterScanBroadcastReceiver, new IntentFilter("afterScan"));
         registerReceiver(this.mLookNearbyBroadcastReceiver, new IntentFilter("lookNearby"));
 
-        // Instantiation of PendingIntent :
-        // call getBroadcast() to instantiate the PendingIntent.
+        // Instantiation of PendingIntent (We call getBroadcast() to instantiate the PendingIntent).
+        // - PendingIntent is instantiated by calling getActivity, getBroadcast, or getService.
+        // - Because PendingIntent has current app's context, external app can also run the Intent which is wrappered in
+        //   PendingIntent just like current app does even if the current app is not exist.
         this.mStartScanBroadcastPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 233, START_SCAN_INTENT, 0);
         this.mAfterScanBroadcastPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 233, AFTER_SCAN_INTENT, 0);
         this.mLookNearbyBroadcastPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 233, LOOK_NEARBY_INTENT, 0);
@@ -152,7 +165,10 @@ public class SenzService extends Service {
     }
 
     public void onDestroy() {
+
         L.i("Destroying service");
+
+        // Unregister BroadcastReceiver
         unregisterReceiver(this.mBluetoothBroadcastReceiver);
         unregisterReceiver(this.mStartScanBroadcastReceiver);
         unregisterReceiver(this.mAfterScanBroadcastReceiver);
