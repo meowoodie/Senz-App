@@ -24,12 +24,22 @@ import com.senz.core.Utils;
 import com.senz.core.Beacon;
 import com.senz.core.BeaconWithSenz;
 
+/***********************************************************************************************************************
+ * @ClassName:   Network
+ * @Author:      zhzhzoo
+ * @CommentBy:   Woodie
+ * @CommentAt:   Tue, Nov 27, 2014
+ * @Reference:
+ * @Description: This class is similar to a LruCache's subclass. It packages the LruCache's put() and get() for BeaconWithSenz.
+ ***********************************************************************************************************************/
+
 public class Network {
     private static String queryUrl = "https://cn.avoscloud.com/1.1/functions/";
     private static int timeout = (int) TimeUnit.SECONDS.toMillis(10);
     private static String AVOS_ID = "vigxpgtjk8w6ruxcfaw4kju3ssyttgcqz38y6y6uablqivjd";
     private static String AVOS_KEY = "dxbawm2hh0338hb37wap59gticgr92dpajd80tzekrgv1ptw";
 
+    // Write Location info into JsonWriter
     private static void writeLocation(JsonWriter writer, Location location) throws IOException {
         writer.beginObject();
         writer.name("latitude").value(location.getLatitude());
@@ -39,6 +49,7 @@ public class Network {
         writer.endObject();
     }
 
+    // Write Beacons info into JsonWriter and ready to send request.
     private static void writeBeaconsQueryPost(JsonWriter writer, Collection<Beacon> toQuery, Location lastBeen) throws IOException {
         writer.beginObject();
 
@@ -56,7 +67,7 @@ public class Network {
         writer.endObject();
         writer.close();
     }
-
+    // Write Beacons info into JsonWriter and ready to send request.
     private static void writeLocationQueryPost(JsonWriter writer, Location location) throws IOException {
         writer.beginObject();
 
@@ -67,6 +78,7 @@ public class Network {
         writer.close();
     }
 
+    //
     private static HashMap<String, Senz> readSenzHashMapFromJsonObject(JsonReader reader) throws IOException {
         HashMap<String, Senz> msenz = new HashMap<String, Senz>();
         reader.beginObject();
@@ -149,6 +161,7 @@ public class Network {
         public T read(InputStream is) throws IOException;
     }
 
+    // It's the main function for sending http request.
     public static <T> T doQuery(URL url, QueryWriter w, ResultReader<T> r) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         urlConnection.setConnectTimeout(timeout);
@@ -160,13 +173,14 @@ public class Network {
         T t = null;
 
         try {
+            // writer is not allowed be null.
             if (w != null) {
                 urlConnection.setDoOutput(true);
                 urlConnection.setChunkedStreamingMode(0);
             }
-
+            // Write the sending message.
             w.write(urlConnection.getOutputStream());
-
+            // Read the receiving message.
             t = r.read(urlConnection.getInputStream());
         }
         finally {
@@ -183,9 +197,12 @@ public class Network {
                 new QueryWriter() {
                     @Override
                     public void write(OutputStream os) throws IOException {
+                        // Init the StringWriter sized fo 100
                         StringWriter sw = new StringWriter(100);
+                        // Write the beacons info and location into StringWriter.
                         writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
-                        L.i(sw.toString());
+                        L.i("The sending message is: " + sw.toString());
+                        //
                         writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
                     }
                 },
@@ -197,6 +214,7 @@ public class Network {
                 });
     }
 
+    // Query with Location info.
     public static ArrayList<BeaconWithSenz> queryLocation(final Location location) throws IOException {
         return doQuery(
                 new URL(queryUrl + "beacons"),
