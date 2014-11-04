@@ -457,6 +457,7 @@ public class SenzService extends Service {
                 SystemClock.elapsedRealtime() + delayMillis, pendingIntent);
     }
 
+
     private void setAlarmStart() {
         if (this.mTelepathyPeriod.waitMillis == 0L)
             this.startScanning();

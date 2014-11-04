@@ -176,7 +176,7 @@ public class Network {
         return t;
     }
 
-
+    // Query with Beacons info.
     public static ArrayList<BeaconWithSenz> queryBeacons(final Collection<Beacon> toQuery, final Location lastBeen) throws IOException {
         return doQuery(
                 new URL(queryUrl + "beacons"),
