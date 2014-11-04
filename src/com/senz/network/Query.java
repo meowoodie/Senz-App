@@ -56,12 +56,14 @@ public class Query {
             // - senzesFromLocation: send location to AVOSCloud Server to get Senz info back.
             @Override
             public ArrayList<Senz> runAndReturn() throws IOException {
+                L.i("running query for locations");
                 return senzesFromLocation(location);
             }
             // Finally, it will handle the result which is returned by runAndReturn()
             // - onSenzReady: It is defined by user, here we can use it to get senz result.
             @Override
             public void onReturn(ArrayList<Senz> result) {
+                L.i("query returnning");
                 cb.onSenzReady(result);
             }
             // If it throw an error, it will run this.
@@ -79,7 +81,7 @@ public class Query {
         Asyncfied.runAsyncfiable(new Asyncfied.Asyncfiable<ArrayList<Senz>>() {
             @Override
             public ArrayList<Senz> runAndReturn() throws IOException {
-                L.i("running query");
+                L.i("running query for beacons");
                 return senzesFromBeacons(beacons, location);
             }
 

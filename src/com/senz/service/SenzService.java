@@ -79,7 +79,7 @@ public class SenzService extends Service {
     * will broadcast an Intent, we can use the Broadcast Receiver register an Intent to listen to them and get
     * the data of Intent.
     */
-    // They are used to receiving the notification (We have defined those notices, actually the notice is a intent)
+    // They are used to receiving the notification (We have defined those notifications, actually the notification is a intent)
     // If they receive a notification(intent), they will call function - onReceive().
     // - TIPS: Receiver is active only while onReceive running. It is not inactive until onReceive return.
     //         So, some time-cosuming operation should be in another single thread.(This operation should be done by a
@@ -252,7 +252,7 @@ public class SenzService extends Service {
                     setAlarm(SenzService.this.mLookNearbyBroadcastPendingIntent, TimeUnit.MINUTES.toMillis(1));
                 }
             });
-        setAlarm(this.mLookNearbyBroadcastPendingIntent, this.mTelepathyPeriod.GPSMillis);
+        //setAlarm(this.mLookNearbyBroadcastPendingIntent, this.mTelepathyPeriod.GPSMillis);
     }
 
     private class AfterScanTask implements Runnable {
@@ -392,8 +392,9 @@ public class SenzService extends Service {
             }
         };
     }
+
     // AfterScan - BroadcastReceiver
-    // - Start a thread to run "AfterScan" Task
+    // - Start a thread to run "AfterScan" Task.
     private BroadcastReceiver createAfterScanBroadcastReceiver() {
         return new BroadcastReceiver() {
             @Override
@@ -403,6 +404,8 @@ public class SenzService extends Service {
         };
     }
 
+    // StartScan - BroadcastReceiver
+    // - Start a thread to restart scanning.
     private BroadcastReceiver createStartScanBroadcastReceiver() {
         return new BroadcastReceiver() {
             @Override
@@ -417,6 +420,8 @@ public class SenzService extends Service {
         };
     }
 
+    // LookNearby - BroadcastReceiver
+    // - Start a thread to "look nearby"(actually, it sends a http request to server, which para is location)
     private BroadcastReceiver createLookNearbyBroadcastReceiver() {
         return new BroadcastReceiver() {
             @Override
