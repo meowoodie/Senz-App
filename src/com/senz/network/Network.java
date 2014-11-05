@@ -107,37 +107,43 @@ public class Network {
         return tmp;
     }
 
+    // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
     private static ArrayList<BeaconWithSenz> readResult(JsonReader reader) throws IOException {
         String name, result = null;
         HashMap<String, Senz> senzesById = null;
         ArrayList<BeaconWithSenz> bwss = null;
         ArrayList<Pair<Beacon, String>> tmp = null;
 
-
+        // read result from reader
         reader.beginObject();
         while (reader.hasNext()) {
             name = reader.nextName();
+            // Get result's item.
             if (name.equals("result")) {
                 result = reader.nextString();
-
-            } else {
+            }
+            else {
                 reader.skipValue();
             }
         }
         reader.endObject();
         reader.close();
 
+        // If there is no result, It will throw an exception.
         if (result == null)
             throw new ResultNotPresentException();
 
+        // Analysis the result, and
+        // Transform the result to a BeaconWithSenz object.
         reader = new JsonReader(new StringReader(result));
         reader.beginObject();
         while (reader.hasNext()) {
             name = reader.nextName();
             if (name.equals("senzes")) {
+                // It's a hash map <String, Senz>.
                 senzesById = readSenzHashMapFromJsonObject(reader);
-
-            } else if (name.equals("beacons")) {
+            }
+            else if (name.equals("beacons")) {
                 if (senzesById != null)
                     bwss = readBeaconWithSenzArrayListFromJsonArrayAndSenzById(reader, senzesById);
                 else
@@ -200,13 +206,16 @@ public class Network {
                 new URL(queryUrl + "beacons"),
                 new QueryWriter() {
                     @Override
+                    // This callback will write the location and beacons info into os.
                     public void write(OutputStream os) throws IOException {
                         // Init the StringWriter sized fo 100
                         StringWriter sw = new StringWriter(100);
                         // Write the beacons info and location into StringWriter.
                         writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
                         L.i("The sending message is: " + sw.toString());
-                        //
+                        // Write location and beacons info into a JsonWriter,
+                        // which Creates a new instance that writes a JSON-encoded stream to os.
+                        // The os will return to be the post's para
                         writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
                     }
                 },
@@ -225,6 +234,7 @@ public class Network {
                 new QueryWriter() {
                     @Override
                     public void write(OutputStream os) throws IOException {
+
                         writeLocationQueryPost(new JsonWriter(new OutputStreamWriter(os)), location);
                     }
                 },
