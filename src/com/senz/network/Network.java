@@ -60,10 +60,10 @@ public class Network {
             writeLocation(writer, lastBeen);
         }
         writer.endObject();
-        
+
         writer.name("beacons");
         Utils.writeToJsonArray(writer, toQuery);
-        
+
         writer.endObject();
         writer.close();
     }
@@ -140,7 +140,6 @@ public class Network {
         while (reader.hasNext()) {
             name = reader.nextName();
             if (name.equals("senzes")) {
-                // It's a hash map <String, Senz>.
                 senzesById = readSenzHashMapFromJsonObject(reader);
             }
             else if (name.equals("beacons")) {
