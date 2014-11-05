@@ -163,7 +163,10 @@ public class Network {
 
     // It's the main function for sending http request.
     public static <T> T doQuery(URL url, QueryWriter w, ResultReader<T> r) throws IOException {
+        // According to url's type, url.openConnection will return different object of URLConnection's subclass.
+        // Here it will return a object of HttpURLConnection, because of url's head is "http".
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        // Set http's header.
         urlConnection.setConnectTimeout(timeout);
         urlConnection.setRequestProperty("Content-Type", "application/json");
         urlConnection.setRequestProperty("charset", "utf-8");
@@ -175,6 +178,7 @@ public class Network {
         try {
             // writer is not allowed be null.
             if (w != null) {
+                // Url's connection can be used to output(or input), if you want the connection output, then set it true.
                 urlConnection.setDoOutput(true);
                 urlConnection.setChunkedStreamingMode(0);
             }
