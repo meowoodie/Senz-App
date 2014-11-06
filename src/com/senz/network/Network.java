@@ -113,6 +113,7 @@ public class Network {
         ArrayList<BeaconWithSenz> bwss = null;
         ArrayList<Pair<Beacon, String>> tmp = null;
 
+        //L.i("[Network] The receiving message is: " + reader.toString());
         // read result from reader
         reader.beginObject();
         while (reader.hasNext()) {
@@ -120,6 +121,7 @@ public class Network {
             // Get result's item.
             if (name.equals("result")) {
                 result = reader.nextString();
+                L.i("[Network] The 'result' is: " + result);
             }
             else {
                 reader.skipValue();
@@ -129,11 +131,13 @@ public class Network {
         reader.close();
 
         // If there is no result, It will throw an exception.
-        if (result == null)
+        if (result == null) {
+            L.e("[Network] Analysis result error");
             throw new ResultNotPresentException();
+        }
 
         // Analysis the result, and
-        // Transform the result to a BeaconWithSenz object.
+        // Pick up BeaconWithSenz object from result.
         reader = new JsonReader(new StringReader(result));
         reader.beginObject();
         while (reader.hasNext()) {
@@ -210,7 +214,7 @@ public class Network {
                         StringWriter sw = new StringWriter(100);
                         // Write the beacons info and location into StringWriter.
                         writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
-                        L.i("The sending message is: " + sw.toString());
+                        L.i("[Network] The sending message is: " + sw.toString());
                         // Write location and beacons info into a JsonWriter,
                         // which Creates a new instance that writes a JSON-encoded stream to os.
                         // The os will return to be the post's para

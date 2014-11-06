@@ -14,8 +14,11 @@ import com.senz.utils.L;
  * @Author:      zhzhzoo
  * @CommentBy:   Woodie
  * @CommentAt:   Thur, Nov 6, 2014
- * @Reference:
- * @Description:
+ * @Description: It's a GPS manager.
+ *               - First, it inits a location manager.
+ *               - Second, it inits a provider with the location manager.
+ *               - Third, it starts Location Service(Listening GPS) and report current location info once immediatelly.
+ *               - When Location is changed, It will report current location.
  ***********************************************************************************************************************/
 
 public class GPSInfo {
