@@ -9,25 +9,39 @@ import android.os.Bundle;
 import java.util.concurrent.TimeUnit;
 import com.senz.utils.L;
 
+/***********************************************************************************************************************
+ * @ClassName:   GPSInfo
+ * @Author:      zhzhzoo
+ * @CommentBy:   Woodie
+ * @CommentAt:   Thur, Nov 6, 2014
+ * @Reference:
+ * @Description:
+ ***********************************************************************************************************************/
+
 public class GPSInfo {
 	public static final String TAG = GPSInfo.class.getSimpleName();
 	
 	private LocationManager locationManager;
 	private String provider;
 	private GPSInfoListener GPSListener;
-	
+
+    // Init GPS provider.
 	public GPSInfo(Context ctx) {
         if (ctx == null) {
             L.d("yes");
         }
+        // Init locationManager.
 		locationManager = (LocationManager) ctx.getSystemService(Context.LOCATION_SERVICE);
+        // Init provider with locationManager.
 		provider = selectProvider();
 	}
-	
+
+    // It's the user - interface to start listening GPS.
 	public void start(GPSInfoListener ltn) {
 		GPSListener = ltn;
+        // Trigger the callback which defined by user named GPSInfoListener.onGPSInfoChanged()
 		notifyAbout(locationManager.getLastKnownLocation(provider));
-        // update once per 1min and 200m
+        // update once at a minmum interval time =  1min and minmum distance = 200m
 		locationManager.requestLocationUpdates(provider, TimeUnit.MINUTES.toMillis(1), 100, locationListener);
 	}
 	
@@ -44,9 +58,11 @@ public class GPSInfo {
 		criteria.setPowerRequirement(Criteria.POWER_LOW);
 		return locationManager.getBestProvider(criteria, true);
 	}
-	
+
+    // It's a interface for user to define.
+    // The method in following interface will be triggered in different event.
 	private final LocationListener locationListener = new LocationListener () {
-		
+		// If location changed , it will call notifyAbout().(Actually is onGPSInfoChanged)
 		@Override
 		public void onLocationChanged(Location location) {
 			notifyAbout(location);
@@ -64,11 +80,15 @@ public class GPSInfo {
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 		}
 	};
-	
+
+    // It will be called when
+    // - the GPS started.
+    // - the Location is changed
 	private void notifyAbout(Location location) {
 		GPSListener.onGPSInfoChanged(location);
 	}
 
+    // It's a user - interface to define callback.
     public interface GPSInfoListener {
         public void onGPSInfoChanged(Location location);
     }

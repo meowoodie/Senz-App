@@ -28,8 +28,7 @@ import com.senz.core.BeaconWithSenz;
  * @ClassName:   Network
  * @Author:      zhzhzoo
  * @CommentBy:   Woodie
- * @CommentAt:   Tue, Nov 27, 2014
- * @Reference:
+ * @CommentAt:   Tue, Oct 27, 2014
  * @Description: This class is similar to a LruCache's subclass. It packages the LruCache's put() and get() for BeaconWithSenz.
  ***********************************************************************************************************************/
 

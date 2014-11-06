@@ -252,7 +252,7 @@ public class SenzService extends Service {
                 // on error, wait 1 min then query again
                 @Override
                 public void onError(Exception e) {
-                    //L.d("[SET ALARM] looknearby");
+                    L.i("[SET ALARM] looknearby");
                     //setAlarm(SenzService.this.mLookNearbyBroadcastPendingIntent, TimeUnit.MINUTES.toMillis(1));
                 }
             });
@@ -262,6 +262,7 @@ public class SenzService extends Service {
     private class AfterScanTask implements Runnable {
         @Override
         public void run() {
+            // Stop Scanning Bluetooth.
             SenzService.this.stopScanning();
 
             ArrayList<Beacon> beacons = new ArrayList<Beacon>();
@@ -328,8 +329,8 @@ public class SenzService extends Service {
     private class InternalGPSInfoListener implements GPSInfo.GPSInfoListener {
         @Override
         public void onGPSInfoChanged(Location location) {
-            //L.i("[Internall Callback] GPS info changed - " + location.getLatitude() + " , " + location.getLongitude());
             SenzService.this.mLocation = location;
+            L.i("[Internall Callback] GPS info changed - ");
             lookNearby();
         }
     }
@@ -404,8 +405,8 @@ public class SenzService extends Service {
         return new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                SenzService.this.mHandler.post(SenzService.this.mAfterScanTask);
                 L.i("[Broadcast Receiver] after scan!");
+                SenzService.this.mHandler.post(SenzService.this.mAfterScanTask);
             }
         };
     }
@@ -472,7 +473,7 @@ public class SenzService extends Service {
             this.startScanning();
         }
         else{
-            L.d("[SET ALARM] setAlarmStart");
+            L.i("[SET ALARM] setAlarmStart");
             this.setAlarm(this.mStartScanBroadcastPendingIntent, this.mTelepathyPeriod.waitMillis);
         }
     }
@@ -492,20 +493,20 @@ public class SenzService extends Service {
                 public void run() {
                     switch (what) {
                         case MSG_START_TELEPATHY:
-                            L.i("MSG: Starting telepathy");
+                            L.i("[MSG] Starting telepathy");
                             SenzService.this.mStarted = true;
                             SenzService.this.mReplyTo = replyTo;
                             startScanning();
                             break;
                         case MSG_STOP_TELEPATHY:
-                            L.i("MSG: Stopping telepathy");
+                            L.i("[MSG] Stopping telepathy");
                             SenzService.this.mStarted = false;
                             stopScanning();
                             break;
                         case MSG_SET_SCAN_PERIOD:
                             bundle.setClassLoader(TelepathyPeriod.class.getClassLoader());
                             SenzService.this.mTelepathyPeriod = (TelepathyPeriod) bundle.getParcelable("telepathyPeriod");
-                            L.d("MSG: Setting scan period: " + SenzService.this.mTelepathyPeriod);
+                            L.i("[MSG] Setting scan period: " + SenzService.this.mTelepathyPeriod);
                             break;
                     }
                 }
