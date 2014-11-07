@@ -43,7 +43,13 @@ public class GPSInfo {
 	public void start(GPSInfoListener ltn) {
 		GPSListener = ltn;
         // Trigger the callback which defined by user named GPSInfoListener.onGPSInfoChanged()
-		notifyAbout(locationManager.getLastKnownLocation(provider));
+        /*Location loc = null;
+        while(loc  == null)
+        {
+            loc = locationManager.getLastKnownLocation(provider);
+            L.i("-----location----- " + loc);
+        }*/
+        notifyAbout(locationManager.getLastKnownLocation(provider));
         // update once at a minmum interval time =  1min and minmum distance = 200m
 		locationManager.requestLocationUpdates(provider, TimeUnit.MINUTES.toMillis(1), 100, locationListener);
 	}
@@ -51,7 +57,7 @@ public class GPSInfo {
 	public void end() {
 		locationManager.removeUpdates(locationListener);
 	}
-	
+
 	private String selectProvider() {
 		Criteria criteria = new Criteria();
 		criteria.setAccuracy(Criteria.ACCURACY_FINE);

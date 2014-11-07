@@ -236,7 +236,14 @@ public class Network {
                 new QueryWriter() {
                     @Override
                     public void write(OutputStream os) throws IOException {
-
+                        // Init the StringWriter sized fo 100
+                        StringWriter sw = new StringWriter(100);
+                        // Write the beacons info and location into StringWriter.
+                        writeLocationQueryPost(new JsonWriter(sw), location);
+                        L.i("[Network] The sending message is: " + sw.toString());
+                        // Write location info into a JsonWriter,
+                        // which Creates a new instance that writes a JSON-encoded stream to os.
+                        // The os will return to be the post's para
                         writeLocationQueryPost(new JsonWriter(new OutputStreamWriter(os)), location);
                     }
                 },
