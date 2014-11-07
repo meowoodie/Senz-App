@@ -20,6 +20,7 @@ public class Senz implements Parcelable, Jsonable {
     private String mSubType;
     private HashMap<String, String> mEntities;
 
+
     @Override
     public int hashCode() {
         return this.id().hashCode();
