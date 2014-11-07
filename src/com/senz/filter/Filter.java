@@ -10,7 +10,7 @@ public class Filter {
     Context mContext;
     FilterImplementation mFilterImpls[];
 
-    Filter(Context context) {
+    public Filter(Context context) {
         this.mContext = context;
         mFilterImpls = new FilterImplementation[ImplementationList.getters.length];
         for (int i = 0; i < ImplementationList.getters.length; i++) {

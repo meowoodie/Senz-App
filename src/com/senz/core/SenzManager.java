@@ -76,8 +76,8 @@ public class SenzManager {
     private ServiceConnection mServiceConnection;
 
     private boolean mStarted;
-    private HashMap<Senz, Long> mLastSeen;
-    private Filter mFilter;
+    private HashMap<Senz, Long> mLastSeen = new HashMap<Senz, Long>();
+    private Filter mFilter = new Filter(this.mContext);
     // It stores senz info
     private ArrayList<Senz> mLastDiscovered;
 
@@ -236,21 +236,31 @@ public class SenzManager {
         return this.mLastDiscovered;
     }
 
-
+    // Log the senzes and report the unseen senzes.
     private void reportUnseenAndUpdateTime(ArrayList<Senz> senzes) {
+        // Get current time
         long now = System.currentTimeMillis();
         ArrayList<Senz> unseens = new ArrayList<Senz>();
+        // Get senzes which service returned, and they are remembered as "key" by SenzManager in mLastSeen.
+        // And log the current time as "value" in mLastSeen.
         for (Senz senz : senzes)
             this.mLastSeen.put(senz, now);
+        L.i("[SenzManager] Senzes LastSeen count:" + mLastSeen.size());
+        // Check every senzes in mLastSeen,
+        // If someone's timestamp is over 20s, then it will be added in unseen.
+        // These senzes in unseen stand for those left senzes.
         for (Entry<Senz, Long> entry : this.mLastSeen.entrySet())
             if (entry.getValue() - now > TimeUnit.SECONDS.toMillis(20))
                 unseens.add(entry.getKey());
+        // Remove all left senzes in mLastSeen.
         for (Senz senz : unseens)
             this.mLastSeen.remove(senz);
+        // Call the callback which defined by users.
         this.mTelepathyCallback.onLeave(unseens);
     }
 
     private void respondSenz(final ArrayList<Senz> senzes) {
+        L.i("[SenzManager] Senzes Discovered count:" + senzes.size());
         this.mLastDiscovered = senzes;
         this.mTelepathyCallback.onDiscover(senzes);
     }

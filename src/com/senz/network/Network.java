@@ -150,8 +150,8 @@ public class Network {
                     bwss = readBeaconWithSenzArrayListFromJsonArrayAndSenzById(reader, senzesById);
                 else
                     tmp = readBeaconSenzIdPairArrayListFromJsonArray(reader);
-
-            } else {
+            }
+            else {
                 reader.skipValue();
             }
         }

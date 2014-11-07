@@ -111,6 +111,7 @@ public class Query {
             @Override
             public void onReturn(ArrayList<Senz> result) {
                 L.i(" - query returnning");
+                L.i(" - query senz: " + result.toString());
                 cb.onSenzReady(result);
             }
 
