@@ -22,6 +22,7 @@ import com.senz.utils.L;
  ***********************************************************************************************************************/
 
 public class GPSInfo {
+
 	public static final String TAG = GPSInfo.class.getSimpleName();
 	
 	private LocationManager locationManager;
@@ -43,17 +44,12 @@ public class GPSInfo {
 	public void start(GPSInfoListener ltn) {
 		GPSListener = ltn;
         // Trigger the callback which defined by user named GPSInfoListener.onGPSInfoChanged()
-        /*Location loc = null;
-        while(loc  == null)
-        {
-            loc = locationManager.getLastKnownLocation(provider);
-            L.i("-----location----- " + loc);
-        }*/
         notifyAbout(locationManager.getLastKnownLocation(provider));
         // update once at a minmum interval time =  1min and minmum distance = 200m
 		locationManager.requestLocationUpdates(provider, TimeUnit.MINUTES.toMillis(1), 100, locationListener);
 	}
-	
+
+    // Stop listening location update.
 	public void end() {
 		locationManager.removeUpdates(locationListener);
 	}
@@ -74,7 +70,7 @@ public class GPSInfo {
 		// If location changed , it will call notifyAbout().(Actually is onGPSInfoChanged)
 		@Override
 		public void onLocationChanged(Location location) {
-			notifyAbout(location);
+            notifyAbout(location);
 		}
 		
 		@Override

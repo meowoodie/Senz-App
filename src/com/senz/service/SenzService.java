@@ -245,6 +245,7 @@ public class SenzService extends Service {
                 public void onSenzReady(ArrayList<Senz> senzes) {
                     // Here do nothing!!!!!!!!!!!
                     // I will put my code here soon.
+
                 }
             },
             // Defined operation when throw an error.(It will pass to Asyncfied.runAsyncfiable)
