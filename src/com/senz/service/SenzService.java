@@ -10,6 +10,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.Handler;
@@ -46,7 +50,7 @@ import com.senz.core.BeaconWithSenz;
  *               -
  *               -
  ***********************************************************************************************************************/
-public class SenzService extends Service {
+public class SenzService extends Service implements SensorEventListener {
 
     // The definition of Message type
     public static final int MSG_START_TELEPATHY = 1;
@@ -54,6 +58,10 @@ public class SenzService extends Service {
     public static final int MSG_TELEPATHY_RESPONSE = 3;
     public static final int MSG_ERROR_RESPONSE = 4;
     public static final int MSG_SET_SCAN_PERIOD = 5;
+
+    // Sensor
+    private SensorManager mSensorManager;
+    private Sensor mAccelerometer;
 
     // The Intent wrappered by following PendingIntent.
     private static final Intent START_SCAN_INTENT = new Intent("startScan");
@@ -118,6 +126,11 @@ public class SenzService extends Service {
                                                     TimeUnit.MINUTES.toMillis(30L));
         this.mStarted         = this.mScanning = false;
         this.mGPSInfoListener = new InternalGPSInfoListener();
+
+        L.i("get service");
+        // Sensor
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
 
     public void onCreate() {
@@ -162,7 +175,11 @@ public class SenzService extends Service {
         this.mAfterScanBroadcastPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 233, AFTER_SCAN_INTENT, 0);
         this.mLookNearbyBroadcastPendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 233, LOOK_NEARBY_INTENT, 0);
 
+        // GPS start listening.
         this.mGPSInfo.start(this.mGPSInfoListener);
+        L.i("register sensor");
+        // Sensor start listening.
+        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void onDestroy() {
@@ -179,10 +196,14 @@ public class SenzService extends Service {
             stopScanning();
         }
 
+        // GPS stop listening.
         this.mGPSInfo.end();
 
-        this.mHandlerThread.quit();
+        // Sensor stop listening.
+        mSensorManager.unregisterListener(this);
 
+        this.mHandlerThread.quit();
+        L.i("unregister sensor");
         super.onDestroy();
     }
 
@@ -522,6 +543,17 @@ public class SenzService extends Service {
                 }
             });
         }
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float lux = event.values[0];
+        L.i("--- --- --- lux --- --- --- " + lux);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 
 }
