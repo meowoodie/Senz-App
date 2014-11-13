@@ -127,10 +127,6 @@ public class SenzService extends Service implements SensorEventListener {
         this.mStarted         = this.mScanning = false;
         this.mGPSInfoListener = new InternalGPSInfoListener();
 
-        L.i("get service");
-        // Sensor
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
 
     public void onCreate() {
@@ -146,9 +142,9 @@ public class SenzService extends Service implements SensorEventListener {
         // Instantiation of BluetoothManager.
         BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         this.mAdapter = bluetoothManager.getAdapter();
+
         // Instantiation of interface - Runnable
         this.mAfterScanTask = new AfterScanTask();
-
         this.mHandlerThread = new HandlerThread("SenzServiceThread", Process.THREAD_PRIORITY_BACKGROUND);
         this.mHandlerThread.start();
         this.mHandler = new Handler(this.mHandlerThread.getLooper());
@@ -177,9 +173,21 @@ public class SenzService extends Service implements SensorEventListener {
 
         // GPS start listening.
         this.mGPSInfo.start(this.mGPSInfoListener);
-        L.i("register sensor");
-        // Sensor start listening.
-        mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+
+        // Sensor
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (mAccelerometer != null){
+            // Success! There's a magnetometer.
+            L.i("Success! There's a accelerometer!");
+            // Sensor start listening.
+            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else {
+            // Failure! No magnetometer.
+            L.i("Failure! No accelerometer!");
+        }
+
     }
 
     public void onDestroy() {
