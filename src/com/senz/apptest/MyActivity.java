@@ -45,6 +45,7 @@ public class MyActivity extends Activity {
 //                    runOnUiThread(
 //                            // some runnable
 //                    );
+                    Log.i(TAG,"Discover!!!!!!!!!!!!");
                 }
                 @Override
                 // When a Beacon left
@@ -52,6 +53,7 @@ public class MyActivity extends Activity {
 //                    runOnUiThread(
 //                            // some runnable
 //                    );
+                    Log.i(TAG,"Left!!!!!!!!!!!!");
                 }
             });
         }

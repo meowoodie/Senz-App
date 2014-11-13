@@ -46,7 +46,7 @@ public class GPSInfo {
         // Trigger the callback which defined by user named GPSInfoListener.onGPSInfoChanged()
         notifyAbout(locationManager.getLastKnownLocation(provider));
         // update once at a minmum interval time =  1min and minmum distance = 200m
-		locationManager.requestLocationUpdates(provider, TimeUnit.MINUTES.toMillis(1), 100, locationListener);
+		locationManager.requestLocationUpdates(provider, 0, 0, locationListener);
 	}
 
     // Stop listening location update.

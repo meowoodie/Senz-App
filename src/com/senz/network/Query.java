@@ -93,7 +93,7 @@ public class Query {
             // If it throw an error, it will run this.
             @Override
             public void onError(Exception e) {
-                L.i(" - query location error");
+                L.e(" - query location error");
                 eh.onError(e);
             }
         });
@@ -118,7 +118,7 @@ public class Query {
 
             @Override
             public void onError(Exception e) {
-                L.i(" - query beacons error");
+                L.e(" - query beacons error");
                 eh.onError(e);
             }
         });

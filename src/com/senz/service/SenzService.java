@@ -232,6 +232,8 @@ public class SenzService extends Service {
         L.d("Look for nearby Senz by GPS Location");
         // Cancel LookNearby Intent which already exists.
         this.mAlarmManager.cancel(this.mLookNearbyBroadcastPendingIntent);
+
+        final Message response = Message.obtain(null, MSG_TELEPATHY_RESPONSE);
         // It will send query request to avoscloud.
         // - send:    Location (got by GPS)
         // - receive: Senz Info (from AVOSCloud Server)
@@ -243,9 +245,16 @@ public class SenzService extends Service {
                 // Here the para senzes is the result which is got back from avoscloud server.
                 @Override
                 public void onSenzReady(ArrayList<Senz> senzes) {
-                    // Here do nothing!!!!!!!!!!!
-                    // I will put my code here soon.
-
+                    // put senz info into msg which will be sent back to SenzManager.
+                    //response.getData().putParcelableArrayList("senzes", senzes);
+                    try {
+                        // Send msg back to SenzManager.
+                        L.i("Location query complete, got " + senzes.size() + " senzes");
+                        mReplyTo.send(response);
+                    }
+                    catch (RemoteException e) {
+                        L.e("Error while delivering responses", e);
+                    }
                 }
             },
             // Defined operation when throw an error.(It will pass to Asyncfied.runAsyncfiable)
@@ -253,7 +262,7 @@ public class SenzService extends Service {
                 // on error, wait 1 min then query again
                 @Override
                 public void onError(Exception e) {
-                    L.i("[SET ALARM] looknearby");
+                    //L.i("[SET ALARM] looknearby");
                     //setAlarm(SenzService.this.mLookNearbyBroadcastPendingIntent, TimeUnit.MINUTES.toMillis(1));
                 }
             });
@@ -287,7 +296,7 @@ public class SenzService extends Service {
                             response.getData().putParcelableArrayList("senzes", senzes);
                             try {
                                 // Send msg back to SenzManager.
-                                L.i("query complete, got " + senzes.size() + " senzes");
+                                L.i("Beacon query complete, got " + senzes.size() + " senzes");
                                 mReplyTo.send(response);
                             }
                             catch (RemoteException e) {
