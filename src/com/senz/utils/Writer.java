@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
  * @Author:      Woodie
  * @CreateAt:    Fri, Nov 14, 2014
  * @Description: It's a tool to write file to root dir.
+ *               I also design a method to write data to file in json.
  ***********************************************************************************************************************/
 public class Writer {
 
