@@ -28,11 +28,14 @@ import android.os.SystemClock;
 import android.location.Location;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.Map;
 import java.util.ArrayList;
+
+import android.text.format.Time;
 import com.senz.service.TelepathyPeriod;
 import com.senz.service.GPSInfo;
 import com.senz.network.Query;
@@ -196,8 +199,8 @@ public class SenzService extends Service implements SensorEventListener {
 
         // Writer
         this.gyroWriter = new Writer("gyro.txt");
-        this.acceWriter = new Writer("gyro.txt");
-        this.lightWriter = new Writer("gyro.txt");
+        this.acceWriter = new Writer("acce.txt");
+        this.lightWriter = new Writer("light.txt");
     }
 
     public void onDestroy() {
@@ -651,7 +654,7 @@ public class SenzService extends Service implements SensorEventListener {
             // Gyroscope force along the z axis(with drift compensation, rad/s)
             GyroValues[2] = event.values[2];
             // Save the Gyroscopes' data to local file.
-            //saveAcceData();
+            saveGyroData();
         }
         // LOW FREQUENCY
         else if(event.sensor.getType() == Sensor.TYPE_LIGHT)
@@ -667,7 +670,6 @@ public class SenzService extends Service implements SensorEventListener {
 
     }
 
-    //
     private void saveAcceData()
     {
         // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
@@ -675,8 +677,22 @@ public class SenzService extends Service implements SensorEventListener {
             @Override
             public void run()
             {
-                acceWriter.writeFileSdcard("");
+                acceWriter.writeAcceToFile(AcceValues);
             }
         }).start();
     }
+
+    private void saveGyroData()
+    {
+        // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
+        new Thread(new Runnable(){
+            @Override
+            public void run()
+            {
+                gyroWriter.writeGyroToFile(GyroValues);
+            }
+        }).start();
+    }
+
+
 }
