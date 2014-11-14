@@ -62,6 +62,10 @@ public class SenzService extends Service implements SensorEventListener {
     // Sensor
     private SensorManager mSensorManager;
     private Sensor mAccelerometer;
+    // The value of Gyroscope.
+    private float GyroValues[] = new float[]{0,0,0};
+    // The value of accelerometer.
+    private float AcceValues[] = new float[]{0,0,0};
 
     // The Intent wrappered by following PendingIntent.
     private static final Intent START_SCAN_INTENT = new Intent("startScan");
@@ -175,19 +179,7 @@ public class SenzService extends Service implements SensorEventListener {
         this.mGPSInfo.start(this.mGPSInfoListener);
 
         // Sensor
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (mAccelerometer != null){
-            // Success! There's a magnetometer.
-            L.i("Success! There's a accelerometer!");
-            // Sensor start listening.
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        else {
-            // Failure! No magnetometer.
-            L.i("Failure! No accelerometer!");
-        }
-
+        checkSensor();
     }
 
     public void onDestroy() {
@@ -213,6 +205,30 @@ public class SenzService extends Service implements SensorEventListener {
         this.mHandlerThread.quit();
         L.i("unregister sensor");
         super.onDestroy();
+    }
+
+   /*
+    * @Function:    < checkSensor >
+    * @Author:      Woodie
+    * @CreateAt:    Fri, Nov 14, 2014
+    * @Description: This function will check sensors in android phone.
+    *               If some one is exist, it will register this sensor.
+    */
+    private void checkSensor()
+    {
+        // Get Sensor's Services.
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        if (mAccelerometer != null){
+            // Success! There's a accelerometer.
+            L.i("Success! There's a accelerometer!");
+            // Sensor start listening.
+            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else {
+            // Failure! No magnetometer.
+            L.i("Failure! No accelerometer!");
+        }
     }
 
    /*
@@ -553,10 +569,33 @@ public class SenzService extends Service implements SensorEventListener {
         }
     }
 
+   /*
+    * @Function:    Module of Sensor.
+    * @Author:      Woodie
+    * @CreateAt:    Fri, Nov 14, 2014
+    * @Description: - There are two callbacks, one is invoked when sensors' value changed, and the other one
+    *                 is invoked when sensors'accuracy changed. We can put our code in these two functions to
+    *                 handle the sensors' value.
+    *               - saveXData : Save sensors' data to local file.
+    *               - calculateMotion : Calculate the users' motion type with sensors' data.
+    * @Hint:        Don't block the callback method. Sensor data can change at a high rate, which means the
+    *               system may call the onSensorChanged() and onAccuracyChanged() method quite often.
+    */
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float lux = event.values[0];
-        L.i("--- --- --- lux --- --- --- " + lux);
+        // Get the sensors' data.
+        if(event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION)
+        {
+            // Acceleration force along the x axis(Excluding gravity, m/s2)
+            AcceValues[0] = event.values[0];
+            // Acceleration force along the y axis(Excluding gravity, m/s2)
+            AcceValues[1] = event.values[1];
+            // Acceleration force along the z axis(Excluding gravity, m/s2)
+            AcceValues[2] = event.values[2];
+            // Save the accelerometers' data to local file.
+            saveAcceData();
+        }
+
     }
 
     @Override
@@ -564,4 +603,16 @@ public class SenzService extends Service implements SensorEventListener {
 
     }
 
+    //
+    private void saveAcceData()
+    {
+        // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
+        new Thread(new Runnable(){
+            @Override
+            public void run()
+            {
+                L.i("--- --- --- lux --- --- --- " + AcceValues[0] + "," + AcceValues[1] + "," + AcceValues[2]);
+            }
+        }).start();
+    }
 }
