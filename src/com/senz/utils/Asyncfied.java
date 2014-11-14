@@ -37,7 +37,7 @@ public class Asyncfied {
                     ret = Asyncfied.this.mAsyncfied.runAndReturn();
                 }
                 catch (Exception e) {
-                    L.i(" --- Async errored");
+                    L.e(" --- Async errored");
                     Asyncfied.this.mAsyncfied.onError(e);
                     return;
                 }

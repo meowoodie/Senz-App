@@ -59,13 +59,18 @@ public class SenzService extends Service implements SensorEventListener {
     public static final int MSG_ERROR_RESPONSE = 4;
     public static final int MSG_SET_SCAN_PERIOD = 5;
 
-    // Sensor
+    // Sensor Manager
     private SensorManager mSensorManager;
+    // Sensor
     private Sensor mAccelerometer;
+    private Sensor mGyroscope;
+    private Sensor mLight;
     // The value of Gyroscope.
     private float GyroValues[] = new float[]{0,0,0};
-    // The value of accelerometer.
+    // The value of Accelerometer.
     private float AcceValues[] = new float[]{0,0,0};
+    // The value of Light
+    private float LightValues = 0;
 
     // The Intent wrappered by following PendingIntent.
     private static final Intent START_SCAN_INTENT = new Intent("startScan");
@@ -219,15 +224,42 @@ public class SenzService extends Service implements SensorEventListener {
         // Get Sensor's Services.
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        mGyroscope     = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        mLight         = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        // Check Accelerometer is exist.
         if (mAccelerometer != null){
             // Success! There's a accelerometer.
-            L.i("Success! There's a accelerometer!");
+            L.i("There's a accelerometer!");
             // Sensor start listening.
             mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
         }
         else {
-            // Failure! No magnetometer.
-            L.i("Failure! No accelerometer!");
+            // Failure! No accelerometer.
+            L.e("Failure! No accelerometer!");
+        }
+
+        // Check Gyroscope is exist.
+        if (mGyroscope != null){
+            // Success! There's a mGyroscope.
+            L.i("There's a mGyroscope!");
+            // Sensor start listening.
+            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else {
+            // Failure! No mGyroscope.
+            L.e("Failure! No mGyroscope!");
+        }
+
+        // Check Light is exist.
+        if (mLight != null){
+            // Success! There's a Light.
+            L.i("There's a Light!");
+            // Sensor start listening.
+            mSensorManager.registerListener(this, mLight, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        else {
+            // Failure! No Light.
+            L.e("Failure! No Light!");
         }
     }
 
@@ -584,6 +616,7 @@ public class SenzService extends Service implements SensorEventListener {
     @Override
     public void onSensorChanged(SensorEvent event) {
         // Get the sensors' data.
+        // HIGH FREQUENCY
         if(event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION)
         {
             // Acceleration force along the x axis(Excluding gravity, m/s2)
@@ -593,9 +626,27 @@ public class SenzService extends Service implements SensorEventListener {
             // Acceleration force along the z axis(Excluding gravity, m/s2)
             AcceValues[2] = event.values[2];
             // Save the accelerometers' data to local file.
-            saveAcceData();
+            //saveAcceData();
         }
-
+        // HIGH FREQUENCY
+        else if(event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
+        {
+            // Gyroscope force along the x axis(with drift compensation, rad/s)
+            GyroValues[0] = event.values[0];
+            // Gyroscope force along the y axis(with drift compensation, rad/s)
+            GyroValues[1] = event.values[1];
+            // Gyroscope force along the z axis(with drift compensation, rad/s)
+            GyroValues[2] = event.values[2];
+            // Save the Gyroscopes' data to local file.
+            //saveAcceData();
+        }
+        // LOW FREQUENCY
+        else if(event.sensor.getType() == Sensor.TYPE_LIGHT)
+        {
+            // Illuminance(lx)
+            LightValues = event.values[0];
+            //saveAcceData();
+        }
     }
 
     @Override
@@ -611,7 +662,7 @@ public class SenzService extends Service implements SensorEventListener {
             @Override
             public void run()
             {
-                L.i("--- --- --- lux --- --- --- " + AcceValues[0] + "," + AcceValues[1] + "," + AcceValues[2]);
+                L.i("--- --- --- lux --- --- --- " + LightValues);
             }
         }).start();
     }
