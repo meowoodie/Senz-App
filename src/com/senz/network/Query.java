@@ -20,7 +20,7 @@ import com.senz.utils.L;
  * @ClassName:   Query
  * @Author:      zhzhzoo
  * @CommentBy:   Woodie
- * @CommentAt:   Tue, Nov 27, 2014
+ * @CommentAt:   Tue, Oct 27, 2014
  * @Description: Query provide a framework that query for senz info from AvosCloud Server.
  *               - First, it provide a callback for user to decide how to handle their query result.
  *               - Second, it call the Network module to query.

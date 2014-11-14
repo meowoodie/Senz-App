@@ -26,6 +26,8 @@ import android.os.RemoteException;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.location.Location;
+
+import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,6 +40,7 @@ import com.senz.utils.L;
 import com.senz.core.Beacon;
 import com.senz.core.Senz;
 import com.senz.core.BeaconWithSenz;
+import com.senz.utils.Writer;
 
 /***********************************************************************************************************************
  * @ClassName:   SenzService
@@ -71,6 +74,11 @@ public class SenzService extends Service implements SensorEventListener {
     private float AcceValues[] = new float[]{0,0,0};
     // The value of Light
     private float LightValues = 0;
+
+    //Writer
+    private Writer gyroWriter = null;
+    private Writer acceWriter = null;
+    private Writer lightWriter = null;
 
     // The Intent wrappered by following PendingIntent.
     private static final Intent START_SCAN_INTENT = new Intent("startScan");
@@ -185,6 +193,11 @@ public class SenzService extends Service implements SensorEventListener {
 
         // Sensor
         checkSensor();
+
+        // Writer
+        this.gyroWriter = new Writer("gyro.txt");
+        this.acceWriter = new Writer("gyro.txt");
+        this.lightWriter = new Writer("gyro.txt");
     }
 
     public void onDestroy() {
@@ -626,7 +639,7 @@ public class SenzService extends Service implements SensorEventListener {
             // Acceleration force along the z axis(Excluding gravity, m/s2)
             AcceValues[2] = event.values[2];
             // Save the accelerometers' data to local file.
-            //saveAcceData();
+            saveAcceData();
         }
         // HIGH FREQUENCY
         else if(event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
@@ -662,7 +675,7 @@ public class SenzService extends Service implements SensorEventListener {
             @Override
             public void run()
             {
-                L.i("--- --- --- lux --- --- --- " + LightValues);
+                acceWriter.writeFileSdcard("");
             }
         }).start();
     }
