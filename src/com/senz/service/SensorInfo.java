@@ -19,6 +19,8 @@ import com.senz.utils.L;
  *               - You can manipulate data in SensorHandler from the sensor every time when the sensors's data changed.
  *               - Also, you can collect the data whenever you want, all you need is accessing the SensorInfo's private member
  *               - GyroValues, AcceValues, and LightValues.
+ * @Hint:        Don't block the callback method. Sensor data can change at a high rate, which means the
+ *               system may call the onSensorChanged() and onAccuracyChanged() method quite often.
  ***********************************************************************************************************************/
 public class SensorInfo{
 

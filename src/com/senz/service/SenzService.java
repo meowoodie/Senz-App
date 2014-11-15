@@ -56,7 +56,7 @@ import com.senz.utils.Writer;
  *               -
  *               -
  ***********************************************************************************************************************/
-public class SenzService extends Service /*implements SensorEventListener*/ {
+public class SenzService extends Service {
 
     // The definition of Message type
     public static final int MSG_START_TELEPATHY = 1;
@@ -229,7 +229,7 @@ public class SenzService extends Service /*implements SensorEventListener*/ {
     * @Function:    < onBind >
     * @CommentBy:   Woodie
     * @CommentAt:   Thur, Oct 30, 2014
-    * @Description: If SenzManager bindService, then this function will be called.
+    * @Description: If SenzManager bindService, then this function will be invoked.
     *               It will return an IBinder to Client(SenzManager)'s onServiceConnected(), so Client can instantiate a
     *               Massenger. to communicate with SenzService.
     */
@@ -391,15 +391,21 @@ public class SenzService extends Service /*implements SensorEventListener*/ {
     private class InternalSensorHandler implements SensorInfo.SensorHandler
     {
         @Override
+        // It will be invoked when Acce data changed,
+        // And the code run in AcceHandler is in another thread.
         public void AcceHandler(float Acce[])
         {
             acceWriter.writeAcceToFile(Acce);
         }
+        // It will be invoked when Gyro data changed,
+        // And the code run in GyroHandler is in another thread.
         @Override
         public void GyroHandler(float Gyro[])
         {
             gyroWriter.writeGyroToFile(Gyro);
         }
+        // It will be invoked when Light data changed,
+        // And the code run in LightHandler is in another thread.
         @Override
         public void LightHandler(float Light)
         {
@@ -585,83 +591,4 @@ public class SenzService extends Service /*implements SensorEventListener*/ {
             });
         }
     }
-
-   /*
-    * @Function:    Module of Sensor.
-    * @Author:      Woodie
-    * @CreateAt:    Fri, Nov 14, 2014
-    * @Description: - There are two callbacks, one is invoked when sensors' value changed, and the other one
-    *                 is invoked when sensors'accuracy changed. We can put our code in these two functions to
-    *                 handle the sensors' value.
-    *               - saveXData : Save sensors' data to local file.
-    *               - calculateMotion : Calculate the users' motion type with sensors' data.
-    * @Hint:        Don't block the callback method. Sensor data can change at a high rate, which means the
-    *               system may call the onSensorChanged() and onAccuracyChanged() method quite often.
-    */
-    /*@Override
-    public void onSensorChanged(SensorEvent event) {
-        // Get the sensors' data.
-        // HIGH FREQUENCY
-        if(event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION)
-        {
-            // Acceleration force along the x axis(Excluding gravity, m/s2)
-            AcceValues[0] = event.values[0];
-            // Acceleration force along the y axis(Excluding gravity, m/s2)
-            AcceValues[1] = event.values[1];
-            // Acceleration force along the z axis(Excluding gravity, m/s2)
-            AcceValues[2] = event.values[2];
-            // Save the accelerometers' data to local file.
-            saveAcceData();
-        }
-        // HIGH FREQUENCY
-        else if(event.sensor.getType() == Sensor.TYPE_GYROSCOPE)
-        {
-            // Gyroscope force along the x axis(with drift compensation, rad/s)
-            GyroValues[0] = event.values[0];
-            // Gyroscope force along the y axis(with drift compensation, rad/s)
-            GyroValues[1] = event.values[1];
-            // Gyroscope force along the z axis(with drift compensation, rad/s)
-            GyroValues[2] = event.values[2];
-            // Save the Gyroscopes' data to local file.
-            saveGyroData();
-        }
-        // LOW FREQUENCY
-        else if(event.sensor.getType() == Sensor.TYPE_LIGHT)
-        {
-            // Illuminance(lx)
-            LightValues = event.values[0];
-            //saveAcceData();
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
-    private void saveAcceData()
-    {
-        // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
-        new Thread(new Runnable(){
-            @Override
-            public void run()
-            {
-                acceWriter.writeAcceToFile(AcceValues);
-            }
-        }).start();
-    }
-
-    private void saveGyroData()
-    {
-        // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
-        new Thread(new Runnable(){
-            @Override
-            public void run()
-            {
-                gyroWriter.writeGyroToFile(GyroValues);
-            }
-        }).start();
-    }*/
-
-
 }
