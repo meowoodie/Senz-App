@@ -14,6 +14,11 @@ import com.senz.utils.L;
  * @Author:      Woodie
  * @CreateAt:    Sat, Nov 15, 2014
  * @Description: It's a Sensor manager.
+ *               - First, you need instantiate it, and the para is context and a SensorHandler(It's a interface defined by user)
+ *               - When you instantiated it, it would init the sensor module and start collecting data.
+ *               - You can manipulate data in SensorHandler from the sensor every time when the sensors's data changed.
+ *               - Also, you can collect the data whenever you want, all you need is accessing the SensorInfo's private member
+ *               - GyroValues, AcceValues, and LightValues.
  ***********************************************************************************************************************/
 public class SensorInfo{
 
@@ -27,9 +32,9 @@ public class SensorInfo{
     public float GyroValues[] = new float[]{0,0,0};
     // The value of Accelerometer.
     public float AcceValues[] = new float[]{0,0,0};
-    // The value of Light
+    // The value of Light.
     public float LightValues = 0;
-
+    // Interface - defined by user.
     private SensorHandler sensorHandler;
 
     //Writer
@@ -37,6 +42,8 @@ public class SensorInfo{
     //private Writer acceWriter = null;
     //private Writer lightWriter = null;
 
+    // It is the Sensor Event Listener.
+    // Here, we instantiate it and override it's two method
     private SensorEventListener sensorEventListener = new SensorEventListener(){
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -80,6 +87,7 @@ public class SensorInfo{
         }
     };
 
+    // Constructor
     public SensorInfo(Context ctx, SensorHandler ltn) {
         if (ctx == null) {
             L.e("The context of SensorInfo is null.");
@@ -129,6 +137,7 @@ public class SensorInfo{
         }
     }
 
+    // This method will be invoked when Accelemeters' data changed
     private void HandleAcceData()
     {
         // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
@@ -142,6 +151,7 @@ public class SensorInfo{
         }).start();
     }
 
+    // This method will be invoked when Gyroscopes' data changed
     private void HandleGyroData()
     {
         // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
@@ -155,6 +165,7 @@ public class SensorInfo{
         }).start();
     }
 
+    // This method will be invoked when Lights' data changed
     private void HandleLightData()
     {
         // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
@@ -169,7 +180,13 @@ public class SensorInfo{
     }
 
     // It's a user - interface to define callback.
+    // In this method, you can manipulate data from the sensor every time when the sensors's data changed
+    // Also, you can collect the data whenever you want, what all you need is access the SensorInfo's private member -
+    // GyroValues, AcceValues, and LightValues.
     public interface SensorHandler {
+        // All operation about Accelemeter, Gyroscope and Light data is defined in following method.
+        // These method all run in a new thread. So you can put complicated computation here.
+        // The para is the current data which collect from android sensor.
         public void AcceHandler(float Acce[]);
         public void GyroHandler(float Gyro[]);
         public void LightHandler(float Light);
