@@ -382,7 +382,7 @@ public class SenzService extends Service {
         @Override
         public void onGPSInfoChanged(Location location) {
             SenzService.this.mLocation = location;
-            L.i("GPS info changed: " + location);
+            //L.i("GPS info changed: " + location);
             lookNearby();
         }
     }
