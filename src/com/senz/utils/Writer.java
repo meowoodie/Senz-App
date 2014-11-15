@@ -5,6 +5,7 @@ import android.util.JsonWriter;
 import com.senz.core.Utils;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 
 /***********************************************************************************************************************
@@ -18,7 +19,8 @@ public class Writer {
 
     private File sdCradDir = null;
     private File saveFile  = null;
-
+    private long counter   = 0;
+    private static final long FILE_SIZE  = 2139999999;
     // Constructor
     public Writer(String filename)
     {
@@ -55,8 +57,12 @@ public class Writer {
             // transfer data to json
             writeAcceToJson(new JsonWriter(sw), acce[0], acce[1], acce[2], date);
             // Write json data to file
-            //L.i(sw.toString());
-            writeFileSdcard(sw.toString());
+            if(counter <= FILE_SIZE) {
+                writeFileSdcard(counter + ":");
+                writeFileSdcard(sw.toString());
+                writeFileSdcard(",");
+                counter++;
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -85,8 +91,12 @@ public class Writer {
             // transfer data to json
             writeGyroToJson(new JsonWriter(sw), gyro[0], gyro[1], gyro[2], date);
             // Write json data to file
-            //L.i(sw.toString());
-            writeFileSdcard(sw.toString());
+            if(counter <= FILE_SIZE) {
+                writeFileSdcard(counter + ":");
+                writeFileSdcard(sw.toString());
+                writeFileSdcard(",");
+                counter++;
+            }
         }
         catch (IOException e) {
             e.printStackTrace();

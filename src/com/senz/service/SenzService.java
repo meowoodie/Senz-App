@@ -56,7 +56,7 @@ import com.senz.utils.Writer;
  *               -
  *               -
  ***********************************************************************************************************************/
-public class SenzService extends Service implements SensorEventListener {
+public class SenzService extends Service /*implements SensorEventListener*/ {
 
     // The definition of Message type
     public static final int MSG_START_TELEPATHY = 1;
@@ -66,17 +66,7 @@ public class SenzService extends Service implements SensorEventListener {
     public static final int MSG_SET_SCAN_PERIOD = 5;
 
     // Sensor Manager
-    private SensorManager mSensorManager;
-    // Sensor
-    private Sensor mAccelerometer;
-    private Sensor mGyroscope;
-    private Sensor mLight;
-    // The value of Gyroscope.
-    private float GyroValues[] = new float[]{0,0,0};
-    // The value of Accelerometer.
-    private float AcceValues[] = new float[]{0,0,0};
-    // The value of Light
-    private float LightValues = 0;
+    private SensorInfo mSensorInfo;
 
     //Writer
     private Writer gyroWriter = null;
@@ -134,6 +124,7 @@ public class SenzService extends Service implements SensorEventListener {
     private GPSInfo mGPSInfo;
     private Location mLocation;
     private GPSInfo.GPSInfoListener mGPSInfoListener;
+    private SensorInfo.SensorHandler mSensorHandler;
 
     public SenzService() {
         // Instantiation of Messenger which used to communicate with SenzManager.
@@ -145,8 +136,10 @@ public class SenzService extends Service implements SensorEventListener {
                                                     TimeUnit.SECONDS.toMillis(0L),
                                                     TimeUnit.MINUTES.toMillis(30L));
         this.mStarted         = this.mScanning = false;
+        // GPS listener defined by user. It's method will be invoked when location info is changed.
         this.mGPSInfoListener = new InternalGPSInfoListener();
-
+        // Sensor Handler defined by user. It's methods will be invoked when Sensor info is changed.
+        this.mSensorHandler   = new InternalSensorHandler();
     }
 
     public void onCreate() {
@@ -195,12 +188,13 @@ public class SenzService extends Service implements SensorEventListener {
         this.mGPSInfo.start(this.mGPSInfoListener);
 
         // Sensor
-        checkSensor();
+        this.mSensorInfo = new SensorInfo(this,this.mSensorHandler);
 
         // Writer
         this.gyroWriter = new Writer("gyro.txt");
         this.acceWriter = new Writer("acce.txt");
-        this.lightWriter = new Writer("light.txt");
+        this.gyroWriter.writeFileSdcard("{");
+        this.acceWriter.writeFileSdcard("{");
     }
 
     public void onDestroy() {
@@ -217,66 +211,18 @@ public class SenzService extends Service implements SensorEventListener {
             stopScanning();
         }
 
+        // Write file over.
+        this.acceWriter.writeFileSdcard("}");
+        this.gyroWriter.writeFileSdcard("}");
         // GPS stop listening.
         this.mGPSInfo.end();
 
         // Sensor stop listening.
-        mSensorManager.unregisterListener(this);
+        this.mSensorInfo.unregisterSensor();
 
         this.mHandlerThread.quit();
-        L.i("unregister sensor");
+
         super.onDestroy();
-    }
-
-   /*
-    * @Function:    < checkSensor >
-    * @Author:      Woodie
-    * @CreateAt:    Fri, Nov 14, 2014
-    * @Description: This function will check sensors in android phone.
-    *               If some one is exist, it will register this sensor.
-    */
-    private void checkSensor()
-    {
-        // Get Sensor's Services.
-        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        mGyroscope     = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        mLight         = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        // Check Accelerometer is exist.
-        if (mAccelerometer != null){
-            // Success! There's a accelerometer.
-            L.i("There's a accelerometer!");
-            // Sensor start listening.
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        else {
-            // Failure! No accelerometer.
-            L.e("Failure! No accelerometer!");
-        }
-
-        // Check Gyroscope is exist.
-        if (mGyroscope != null){
-            // Success! There's a mGyroscope.
-            L.i("There's a mGyroscope!");
-            // Sensor start listening.
-            mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        else {
-            // Failure! No mGyroscope.
-            L.e("Failure! No mGyroscope!");
-        }
-
-        // Check Light is exist.
-        if (mLight != null){
-            // Success! There's a Light.
-            L.i("There's a Light!");
-            // Sensor start listening.
-            mSensorManager.registerListener(this, mLight, SensorManager.SENSOR_DELAY_NORMAL);
-        }
-        else {
-            // Failure! No Light.
-            L.e("Failure! No Light!");
-        }
     }
 
    /*
@@ -415,8 +361,9 @@ public class SenzService extends Service implements SensorEventListener {
         }
     }
 
-    //
-    private class InternalLeScanCallback implements BluetoothAdapter.LeScanCallback {
+    // It's the bluetooth's callback
+    private class InternalLeScanCallback implements BluetoothAdapter.LeScanCallback
+    {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             //L.d("[Internall Callback] Get beacons info - " + device);
@@ -429,12 +376,34 @@ public class SenzService extends Service implements SensorEventListener {
         }
     }
 
-    private class InternalGPSInfoListener implements GPSInfo.GPSInfoListener {
+    // It's the GPSinfo's callback
+    private class InternalGPSInfoListener implements GPSInfo.GPSInfoListener
+    {
         @Override
         public void onGPSInfoChanged(Location location) {
             SenzService.this.mLocation = location;
-            L.i("[Internall Callback] GPS info changed: " + location);
+            L.i("GPS info changed: " + location);
             lookNearby();
+        }
+    }
+
+    // It's the SensorInfo's callback
+    private class InternalSensorHandler implements SensorInfo.SensorHandler
+    {
+        @Override
+        public void AcceHandler(float Acce[])
+        {
+            acceWriter.writeAcceToFile(Acce);
+        }
+        @Override
+        public void GyroHandler(float Gyro[])
+        {
+            gyroWriter.writeGyroToFile(Gyro);
+        }
+        @Override
+        public void LightHandler(float Light)
+        {
+
         }
     }
 
@@ -629,7 +598,7 @@ public class SenzService extends Service implements SensorEventListener {
     * @Hint:        Don't block the callback method. Sensor data can change at a high rate, which means the
     *               system may call the onSensorChanged() and onAccuracyChanged() method quite often.
     */
-    @Override
+    /*@Override
     public void onSensorChanged(SensorEvent event) {
         // Get the sensors' data.
         // HIGH FREQUENCY
@@ -692,7 +661,7 @@ public class SenzService extends Service implements SensorEventListener {
                 gyroWriter.writeGyroToFile(GyroValues);
             }
         }).start();
-    }
+    }*/
 
 
 }

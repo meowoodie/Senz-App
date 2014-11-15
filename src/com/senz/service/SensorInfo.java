@@ -28,6 +28,8 @@ public class SensorInfo{
     private Sensor mAccelerometer;
     private Sensor mGyroscope;
     private Sensor mLight;
+    // Context
+    private Context Ctx;
     // The value of Gyroscope.
     public float GyroValues[] = new float[]{0,0,0};
     // The value of Accelerometer.
@@ -89,16 +91,19 @@ public class SensorInfo{
 
     // Constructor
     public SensorInfo(Context ctx, SensorHandler ltn) {
+        // Check context is exist.
         if (ctx == null) {
             L.e("The context of SensorInfo is null.");
         }
         else {
+            Ctx = ctx;
             sensorHandler = ltn;
             // Get Sensor's Services.
-            mSensorManager = (SensorManager) ctx.getSystemService(Context.SENSOR_SERVICE);
+            mSensorManager = (SensorManager) Ctx.getSystemService(Context.SENSOR_SERVICE);
+            // Get corresponding Sensors.
             mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-            mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-            mLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+            mGyroscope     = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+            mLight         = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
             // Check Accelerometer is exist.
             if (mAccelerometer != null) {
                 // Success! There's a accelerometer.
@@ -135,6 +140,13 @@ public class SensorInfo{
                 L.e("Failure! No Light!");
             }
         }
+    }
+
+    // Unregister Sensor
+    public void unregisterSensor()
+    {
+        L.i("Unregister Sensor");
+        mSensorManager.unregisterListener(sensorEventListener);
     }
 
     // This method will be invoked when Accelemeters' data changed
