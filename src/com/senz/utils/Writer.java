@@ -28,7 +28,7 @@ public class Writer {
         saveFile  = new File(sdCradDir, filename);
     }
 
-    // Write at root dir.
+    // Write file at root dir.
     public void writeFileSdcard(String msg)
     {
         try{
@@ -64,7 +64,7 @@ public class Writer {
 
     }
 
-    // Generate Gyro data to json
+    // Generate Acce data to json
     private void writeAcceToJson(JsonWriter writer, float acc0, float acc1, float acc2, String date) throws IOException {
         writer.beginObject();
         writer.name("Time").value(date);
