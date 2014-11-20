@@ -67,6 +67,7 @@ public class SenzService extends Service {
 
     // Sensor Manager
     private SensorInfo mSensorInfo;
+    // Sensor Data Container
 
     //Writer
     private Writer gyroWriter = null;
