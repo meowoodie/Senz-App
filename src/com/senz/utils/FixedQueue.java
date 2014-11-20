@@ -12,16 +12,16 @@ import java.util.List;
  * @Description:
  ***********************************************************************************************************************/
 
-class Queue<T> extends LinkedList<T> implements FIFO<T> {
+class FixedQueue<T> extends LinkedList<T> implements FIFO<T> {
 
     private int maxSize = Integer.MAX_VALUE;
     private final Object synObj = new Object();
 
-    public Queue() {
+    public FixedQueue() {
         super();
     }
 
-    public Queue(int maxSize) {
+    public FixedQueue(int maxSize) {
         super();
         this.maxSize = maxSize;
     }

@@ -29,6 +29,7 @@ import android.location.Location;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -73,6 +74,7 @@ public class SenzService extends Service {
     private Writer gyroWriter = null;
     private Writer acceWriter = null;
     private Writer lightWriter = null;
+
 
     // The Intent wrappered by following PendingIntent.
     private static final Intent START_SCAN_INTENT = new Intent("startScan");
@@ -196,6 +198,8 @@ public class SenzService extends Service {
         this.acceWriter = new Writer("acce.txt");
         this.gyroWriter.writeFileSdcard("{");
         this.acceWriter.writeFileSdcard("{");
+
+
     }
 
     public void onDestroy() {
