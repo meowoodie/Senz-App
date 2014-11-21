@@ -6,13 +6,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 /***********************************************************************************************************************
- * @ClassName:   Queue
+ * @ClassName:   FixedQueue
  * @Author:      Woodie
  * @CreateAt:    Sat, Nov 20, 2014
  * @Description:
  ***********************************************************************************************************************/
 
-class FixedQueue<T> extends LinkedList<T> implements FIFO<T> {
+public class FixedQueue<T> extends LinkedList<T> implements FIFO<T> {
 
     private int maxSize = Integer.MAX_VALUE;
     private final Object synObj = new Object();

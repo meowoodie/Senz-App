@@ -40,6 +40,7 @@ import android.text.format.Time;
 import com.senz.service.TelepathyPeriod;
 import com.senz.service.GPSInfo;
 import com.senz.network.Query;
+import com.senz.utils.FixedQueue;
 import com.senz.utils.L;
 import com.senz.core.Beacon;
 import com.senz.core.Senz;
@@ -199,7 +200,13 @@ public class SenzService extends Service {
         this.gyroWriter.writeFileSdcard("{");
         this.acceWriter.writeFileSdcard("{");
 
-
+        /*FixedQueue<String> list = new FixedQueue<String>(3);
+        list.addLastSafe("haha");
+        list.addLastSafe("lala");
+        list.addLastSafe("zsx");
+        L.i(list.addLastSafe("yoyo"));
+        L.i(list.addLastSafe("miaomiao"));
+        L.i(list.addLastSafe("caca"));*/
     }
 
     public void onDestroy() {
