@@ -297,7 +297,7 @@ public class SenzService extends Service {
                 @Override
                 public void onSenzReady(ArrayList<Senz> senzes) {
                     // put senz info into msg which will be sent back to SenzManager.
-                    //response.getData().putParcelableArrayList("senzes", senzes);
+                    response.getData().putParcelableArrayList("senzes", senzes);
                     try {
                         // Send msg back to SenzManager.
                         L.i("Location query complete, got " + senzes.size() + " senzes");
