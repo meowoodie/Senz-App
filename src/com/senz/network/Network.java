@@ -45,6 +45,7 @@ public class Network {
         writer.name("longitude").value(location.getLongitude());
         writer.name("accuracy").value(location.getAccuracy());
         writer.name("time").value(location.getTime());
+        writer.name("speed").value(location.getSpeed());
         writer.endObject();
     }
 
