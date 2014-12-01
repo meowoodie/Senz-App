@@ -162,6 +162,61 @@ public class Network {
         return bwss;
     }
 
+    // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
+    private static ArrayList<BeaconWithSenz> readSenzResult(JsonReader reader) throws IOException {
+        String name, result = null;
+        HashMap<String, Senz> senzesById = null;
+        ArrayList<BeaconWithSenz> bwss = null;
+        ArrayList<Pair<Beacon, String>> tmp = null;
+
+        //L.i("[Network] The receiving message is: " + reader.toString());
+        // read result from reader
+        reader.beginObject();
+        while (reader.hasNext()) {
+            name = reader.nextName();
+            // Get result's item.
+            if (name.equals("result")) {
+                result = reader.nextString();
+                L.i("[Network] The 'result' is: " + result);
+            }
+            else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+        reader.close();
+
+        // If there is no result, It will throw an exception.
+        if (result == null) {
+            L.e("[Network] Analysis result error");
+            throw new ResultNotPresentException();
+        }
+
+        // Analysis the result, and
+        // Pick up BeaconWithSenz object from result.
+        reader = new JsonReader(new StringReader(result));
+        reader.beginObject();
+        while (reader.hasNext()) {
+            name = reader.nextName();
+            if (name.equals("senzes")) {
+                senzesById = readSenzHashMapFromJsonObject(reader);
+            }
+            else if (name.equals("beacons")) {
+                if (senzesById != null)
+                    bwss = readBeaconWithSenzArrayListFromJsonArrayAndSenzById(reader, senzesById);
+                else
+                    tmp = readBeaconSenzIdPairArrayListFromJsonArray(reader);
+            }
+            else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+        reader.close();
+
+        return bwss;
+    }
+
     private interface QueryWriter {
         public void write(OutputStream os) throws IOException;
     }
@@ -252,6 +307,32 @@ public class Network {
                     @Override
                     public ArrayList<BeaconWithSenz> read(InputStream is) throws IOException {
                         return readResult(new JsonReader(new InputStreamReader(is)));
+                    }
+                });
+    }
+
+    // Query with Location info.
+    public static ArrayList<BeaconWithSenz> queryWithLocation(final Location location) throws IOException {
+        return doQuery(
+                new URL(queryUrl + "beacons"),
+                new QueryWriter() {
+                    @Override
+                    public void write(OutputStream os) throws IOException {
+                        // Init the StringWriter sized fo 100
+                        StringWriter sw = new StringWriter(100);
+                        // Write the beacons info and location into StringWriter.
+                        writeLocationQueryPost(new JsonWriter(sw), location);
+                        L.i("[Network] The 'message' is: " + sw.toString());
+                        // Write location info into a JsonWriter,
+                        // which Creates a new instance that writes a JSON-encoded stream to os.
+                        // The os will return to be the post's para
+                        writeLocationQueryPost(new JsonWriter(new OutputStreamWriter(os)), location);
+                    }
+                },
+                new ResultReader<ArrayList<BeaconWithSenz>>() {
+                    @Override
+                    public ArrayList<BeaconWithSenz> read(InputStream is) throws IOException {
+                        return readSenzResult(new JsonReader(new InputStreamReader(is)));
                     }
                 });
     }

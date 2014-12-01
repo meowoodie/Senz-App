@@ -35,7 +35,7 @@ public class Query {
 
 
     static public ArrayList<Senz> senzesFromBeacons(Collection<Beacon> beacons, Location lastBeen) throws IOException {
-        // Init a HashSet to store senz' info.
+        // Init a HashSet to store senzes' info.
         HashSet<Senz> result = new HashSet<Senz>();
         ArrayList<Beacon> toQueryServer = new ArrayList<Beacon>();
         // Search BeaconWithSenz in cacher by a list of beacons
