@@ -243,7 +243,6 @@ public class SenzManager {
         ArrayList<Senz> unseens = new ArrayList<Senz>();
         // Get senzes which service returned, and they are remembered as "key" by SenzManager in mLastSeen.
         // And log the current time as "value" in mLastSeen.
-        L.i("senz num = " + senzes.size());
         for (Senz senz : senzes)
             this.mLastSeen.put(senz, now);
         //L.i("[SenzManager] Senzes LastSeen count:" + mLastSeen.size());
@@ -257,10 +256,9 @@ public class SenzManager {
         for (Senz senz : unseens)
             this.mLastSeen.remove(senz);
         // Call the callback which defined by users.
-        L.i("unseen num = " + unseens.size());
-        if(unseens.size() > 0) {
-            this.mTelepathyCallback.onLeave(unseens);
-        }
+        //if(unseens.size() > 0) {
+        //    this.mTelepathyCallback.onLeave(unseens);
+        //}
     }
 
     private void respondSenz(final ArrayList<Senz> senzes) {

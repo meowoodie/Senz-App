@@ -57,21 +57,14 @@ public class Senz implements Parcelable, Jsonable {
         return 0;
     }
 
+    // Parcelable for serialization
+
     @Override
     public void writeToParcel(Parcel out, int flags) {
         out.writeString(this.id());
         out.writeString(this.type());
         out.writeString(this.subType());
         Utils.writeParcelStringMap(out, this.entities());
-    }
-
-    @Override
-    public void writeToJson(JsonWriter writer) throws IOException {
-        writer.name("id").value(this.id());
-        writer.name("type").value(this.type());
-        writer.name("subType").value(this.subType());
-        writer.name("content");
-        Utils.writeStringMapAsJsonObject(writer, this.entities());
     }
 
     public Senz(Parcel in) {
@@ -82,6 +75,28 @@ public class Senz implements Parcelable, Jsonable {
         this.mSubType = in.readString();
         this.mEntities = new HashMap<String, String>();
         Utils.readParcelStringMap(this.mEntities, in);
+    }
+
+    public static final Parcelable.Creator<Senz> CREATOR
+            = new Parcelable.Creator<Senz> () {
+        public Senz createFromParcel(Parcel in) {
+            return new Senz(in);
+        }
+
+        public Senz[] newArray(int size) {
+            return new Senz[size];
+        }
+    };
+
+    // Json for serialization
+
+    @Override
+    public void writeToJson(JsonWriter writer) throws IOException {
+        writer.name("id").value(this.id());
+        writer.name("type").value(this.type());
+        writer.name("subType").value(this.subType());
+        writer.name("content");
+        Utils.writeStringMapAsJsonObject(writer, this.entities());
     }
 
     public Senz(JsonReader reader) throws IOException {
@@ -122,16 +137,6 @@ public class Senz implements Parcelable, Jsonable {
             }
         };
 
-    public static final Parcelable.Creator<Senz> CREATOR
-        = new Parcelable.Creator<Senz> () {
-            public Senz createFromParcel(Parcel in) {
-                return new Senz(in);
-            }
-
-            public Senz[] newArray(int size) {
-                return new Senz[size];
-            }
-        };
 
     public static void writeSenzIdArray(JsonWriter writer, List<Senz> senzes) throws IOException{
         writer.beginArray();
