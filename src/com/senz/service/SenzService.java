@@ -136,7 +136,7 @@ public class SenzService extends Service {
         this.mLeScanCallback  = new InternalLeScanCallback();
         this.mBeaconsInACycle = new ConcurrentHashMap();
         this.mBeaconsNearBy   = new ConcurrentHashMap();
-        this.mTelepathyPeriod = new TelepathyPeriod(TimeUnit.SECONDS.toMillis(1L),
+        this.mTelepathyPeriod = new TelepathyPeriod(TimeUnit.SECONDS.toMillis(5L),
                                                     TimeUnit.SECONDS.toMillis(0L),
                                                     TimeUnit.MINUTES.toMillis(30L));
         this.mStarted         = this.mScanning = false;
@@ -357,7 +357,7 @@ public class SenzService extends Service {
                                 SenzService.this.mBeaconsInACycle.clear();
                                 if (SenzService.this.mStarted == false)
                                     return;
-                                SenzService.this.setAlarmStart();
+                                //SenzService.this.setAlarmStart();
                             }
                         },
                         //
@@ -366,11 +366,16 @@ public class SenzService extends Service {
                             @Override
                             public void onError(Exception e) {
                                 L.e("query error", e);
-                                SenzService.this.setAlarmStart();
+                                //SenzService.this.setAlarmStart();
                             }
                         }
                 );// -------Query.senzesFromBeaconsAsync
             }
+            else
+            {
+                L.i("There is no Beacon device.");
+            }
+            SenzService.this.setAlarmStart();
         }
     }
 
@@ -408,14 +413,14 @@ public class SenzService extends Service {
         // And the code run in AcceHandler is in another thread.
         public void AcceHandler(float Acce[])
         {
-            acceWriter.writeAcceToFile(Acce);
+            //acceWriter.writeAcceToFile(Acce);
         }
         // It will be invoked when Gyro data changed,
         // And the code run in GyroHandler is in another thread.
         @Override
         public void GyroHandler(float Gyro[])
         {
-            gyroWriter.writeGyroToFile(Gyro);
+            //gyroWriter.writeGyroToFile(Gyro);
         }
         // It will be invoked when Light data changed,
         // And the code run in LightHandler is in another thread.
