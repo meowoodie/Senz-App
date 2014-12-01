@@ -330,46 +330,47 @@ public class SenzService extends Service {
             final Message response = Message.obtain(null, MSG_TELEPATHY_RESPONSE);
             for (Map.Entry<Beacon, Boolean> e : SenzService.this.mBeaconsInACycle.entrySet())
                 beacons.add(e.getKey());
-            // It will send query request to avoscloud.
-            // - send:    Location (got by GPS), beacons (got by bluetooth)
-            // - receive: Senz Info (from AVOSCloud Server)
-            Query.senzesFromBeaconsAsync(
-                    // It's a para that is sent to avoscloud server
-                    beacons,
-                    // It's a para that is sent to avoscloud server
-                    SenzService.this.mLocation,
-                    // Defined operation after Asyncfied return.(It will pass to Asyncfied.runAsyncfiable)
-                    new Query.SenzReadyCallback() {
-                        // Here the para senzes is the result which is got back from avoscloud server.
-                        @Override
-                        public void onSenzReady(ArrayList<Senz> senzes) {
-                            // put senz info into msg which will be sent back to SenzManager.
-                            response.getData().putParcelableArrayList("senzes", senzes);
-                            try {
-                                // Send msg back to SenzManager.
-                                L.i("Beacon query complete, got " + senzes.size() + " senzes");
-                                mReplyTo.send(response);
+            if(beacons.size() > 0) {
+                // It will send query request to avoscloud.
+                // - send:    Location (got by GPS), beacons (got by bluetooth)
+                // - receive: Senz Info (from AVOSCloud Server)
+                Query.senzesFromBeaconsAsync(
+                        // It's a para that is sent to avoscloud server
+                        beacons,
+                        // It's a para that is sent to avoscloud server
+                        SenzService.this.mLocation,
+                        // Defined operation after Asyncfied return.(It will pass to Asyncfied.runAsyncfiable)
+                        new Query.SenzReadyCallback() {
+                            // Here the para senzes is the result which is got back from avoscloud server.
+                            @Override
+                            public void onSenzReady(ArrayList<Senz> senzes) {
+                                // put senz info into msg which will be sent back to SenzManager.
+                                response.getData().putParcelableArrayList("senzes", senzes);
+                                try {
+                                    // Send msg back to SenzManager.
+                                    L.i("Beacon query complete, got " + senzes.size() + " senzes");
+                                    mReplyTo.send(response);
+                                } catch (RemoteException e) {
+                                    L.e("Error while delivering responses", e);
+                                }
+                                // clear cache in mBeaconsInACycle(bluetooth's info)
+                                SenzService.this.mBeaconsInACycle.clear();
+                                if (SenzService.this.mStarted == false)
+                                    return;
+                                SenzService.this.setAlarmStart();
                             }
-                            catch (RemoteException e) {
-                                L.e("Error while delivering responses", e);
+                        },
+                        //
+                        new Query.ErrorHandler() {
+                            // on error resume next
+                            @Override
+                            public void onError(Exception e) {
+                                L.e("query error", e);
+                                SenzService.this.setAlarmStart();
                             }
-                            // clear cache in mBeaconsInACycle(bluetooth's info)
-                            SenzService.this.mBeaconsInACycle.clear();
-                            if (SenzService.this.mStarted == false)
-                                return;
-                            SenzService.this.setAlarmStart();
                         }
-                    },
-                    //
-                    new Query.ErrorHandler() {
-                        // on error resume next
-                        @Override
-                        public void onError(Exception e) {
-                            L.e("query error", e);
-                            SenzService.this.setAlarmStart();
-                        }
-                    }
-            );// -------Query.senzesFromBeaconsAsync
+                );// -------Query.senzesFromBeaconsAsync
+            }
         }
     }
 

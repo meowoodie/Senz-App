@@ -245,7 +245,7 @@ public class SenzManager {
         // And log the current time as "value" in mLastSeen.
         for (Senz senz : senzes)
             this.mLastSeen.put(senz, now);
-        L.i("[SenzManager] Senzes LastSeen count:" + mLastSeen.size());
+        //L.i("[SenzManager] Senzes LastSeen count:" + mLastSeen.size());
         // Check every senzes in mLastSeen,
         // If someone's timestamp is over 20s, then it will be added in unseen.
         // These senzes in unseen stand for those left senzes.
@@ -256,13 +256,17 @@ public class SenzManager {
         for (Senz senz : unseens)
             this.mLastSeen.remove(senz);
         // Call the callback which defined by users.
-        this.mTelepathyCallback.onLeave(unseens);
+        if(unseens.size() > 0) {
+            this.mTelepathyCallback.onLeave(unseens);
+        }
     }
 
     private void respondSenz(final ArrayList<Senz> senzes) {
         L.i("[SenzManager] Senzes Discovered count:" + senzes.size());
         this.mLastDiscovered = senzes;
-        this.mTelepathyCallback.onDiscover(senzes);
+        if(senzes.size() > 0) {
+            this.mTelepathyCallback.onDiscover(senzes);
+        }
     }
 
     private void respondError(String reason) {
