@@ -163,10 +163,10 @@ public class Network {
     }
 
     // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
-    private static ArrayList<BeaconWithSenz> readSenzResult(JsonReader reader) throws IOException {
+    private static ArrayList<Senz> readSenzResult(JsonReader reader) throws IOException {
         String name, result = null;
         HashMap<String, Senz> senzesById = null;
-        ArrayList<BeaconWithSenz> bwss = null;
+        ArrayList<Senz> bwss = null;
         ArrayList<Pair<Beacon, String>> tmp = null;
 
         //L.i("[Network] The receiving message is: " + reader.toString());
@@ -194,7 +194,7 @@ public class Network {
 
         // Analysis the result, and
         // Pick up BeaconWithSenz object from result.
-        reader = new JsonReader(new StringReader(result));
+        /*reader = new JsonReader(new StringReader(result));
         reader.beginObject();
         while (reader.hasNext()) {
             name = reader.nextName();
@@ -212,7 +212,7 @@ public class Network {
             }
         }
         reader.endObject();
-        reader.close();
+        reader.close();*/
 
         return bwss;
     }
@@ -312,7 +312,7 @@ public class Network {
     }
 
     // Query with Location info.
-    public static ArrayList<BeaconWithSenz> queryWithLocation(final Location location) throws IOException {
+    public static ArrayList<Senz> queryWithLocation(final Location location) throws IOException {
         return doQuery(
                 new URL(queryUrl + "beacons"),
                 new QueryWriter() {
@@ -329,9 +329,9 @@ public class Network {
                         writeLocationQueryPost(new JsonWriter(new OutputStreamWriter(os)), location);
                     }
                 },
-                new ResultReader<ArrayList<BeaconWithSenz>>() {
+                new ResultReader<ArrayList<Senz>>() {
                     @Override
-                    public ArrayList<BeaconWithSenz> read(InputStream is) throws IOException {
+                    public ArrayList<Senz> read(InputStream is) throws IOException {
                         return readSenzResult(new JsonReader(new InputStreamReader(is)));
                     }
                 });

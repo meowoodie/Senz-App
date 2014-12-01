@@ -15,6 +15,8 @@ package com.senz.apptest;
 import android.app.Activity;
 import android.os.Bundle;
 import java.util.List;
+
+import android.os.RemoteException;
 import android.util.Log;
 import com.senz.core.SenzManager;
 import com.senz.core.Senz;
@@ -22,6 +24,7 @@ import com.senz.core.Senz;
 public class MyActivity extends Activity {
 
     private final static String TAG = "SenzApp";
+    private SenzManager senzManager = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,7 +48,7 @@ public class MyActivity extends Activity {
 //                    runOnUiThread(
 //                            // some runnable
 //                    );
-                    Log.i(TAG,"Discover!!!!!!!!!!!!");
+                    //Log.i(TAG,"Discover!!!!!!!!!!!!");
                 }
                 @Override
                 // When a Beacon left
@@ -53,7 +56,7 @@ public class MyActivity extends Activity {
 //                    runOnUiThread(
 //                            // some runnable
 //                    );
-                    Log.i(TAG,"Left!!!!!!!!!!!!");
+                    //Log.i(TAG,"Left!!!!!!!!!!!!");
                 }
             });
         }
@@ -61,5 +64,15 @@ public class MyActivity extends Activity {
             Log.d(TAG, "unable to start telepathy", e);
         }
 
+    }
+    @Override
+    public void onDestroy()
+    {
+        try {
+            senzManager.stopTelepathy();
+            Log.i(TAG,"Stop! Telepathy!");
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 }
