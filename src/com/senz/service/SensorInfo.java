@@ -155,42 +155,42 @@ public class SensorInfo{
     private void HandleAcceData()
     {
         // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
-        new Thread(new Runnable(){
-            @Override
-            public void run()
-            {
+        //new Thread(new Runnable(){
+            //@Override
+            //public void run()
+            //{
                 //acceWriter.writeAcceToFile(AcceValues);
                 sensorHandler.AcceHandler(AcceValues);
-            }
-        }).start();
+            //}
+        //}).start();
     }
 
     // This method will be invoked when Gyroscopes' data changed
     private void HandleGyroData()
     {
         // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
-        new Thread(new Runnable(){
-            @Override
-            public void run()
-            {
+        //new Thread(new Runnable(){
+            //@Override
+            //public void run()
+            //{
                 //gyroWriter.writeGyroToFile(GyroValues);
                 sensorHandler.GyroHandler(GyroValues);
-            }
-        }).start();
+            //}
+        //}).start();
     }
 
     // This method will be invoked when Lights' data changed
     private void HandleLightData()
     {
         // It's not pretty, but it works(any calculations in onSensorChanged aren't pretty to be fair).
-        new Thread(new Runnable(){
-            @Override
-            public void run()
-            {
+        //new Thread(new Runnable(){
+            //@Override
+            //public void run()
+            //{
                 //gyroWriter.writeGyroToFile(GyroValues);
                 sensorHandler.LightHandler(LightValues);
-            }
-        }).start();
+            //}
+        //}).start();
     }
 
     // It's a user - interface to define callback.

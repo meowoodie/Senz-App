@@ -265,7 +265,7 @@ public class SenzManager {
         L.i("[SenzManager] Senzes Discovered count:" + senzes.size());
         this.mLastDiscovered = senzes;
         if(senzes.size() > 0) {
-            this.mTelepathyCallback.onDiscover(senzes);
+            this.mTelepathyCallback.dicoverSenz(senzes);
         }
     }
 
@@ -292,8 +292,9 @@ public class SenzManager {
             switch (msg.what) {
                 case SenzService.MSG_TELEPATHY_RESPONSE:
                     ArrayList<Senz> senzes = msg.getData().getParcelableArrayList("senzes");
-                    SenzManager.this.reportUnseenAndUpdateTime(senzes);
-                    SenzManager.this.respondSenz(SenzManager.this.mFilter.filter(senzes));
+                    //SenzManager.this.reportUnseenAndUpdateTime(senzes);
+                    SenzManager.this.respondSenz(senzes);
+                    //SenzManager.this.respondSenz(SenzManager.this.mFilter.filter(senzes));
                     break;
                 case SenzService.MSG_ERROR_RESPONSE:
                     String reason = msg.getData().getString("reason");
@@ -340,8 +341,9 @@ public class SenzManager {
     *               The member of TelepathyCallback named onLeave will be called in *reportUnseenAndUpdateTime()*.
     */
     public interface TelepathyCallback {
-        public void onDiscover(List<Senz> senzes);
+        public void dicoverSenz(List<Senz> senzes);
         public void onLeave(List<Senz> senzes);
+        //public void
     }
 
     public interface ErrorHandler {

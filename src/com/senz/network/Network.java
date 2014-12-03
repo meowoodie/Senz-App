@@ -52,18 +52,14 @@ public class Network {
     // Write Beacons info into JsonWriter and ready to send request.
     private static void writeBeaconsQueryPost(JsonWriter writer, Collection<Beacon> toQuery, Location lastBeen) throws IOException {
         writer.beginObject();
-
-        writer.name("meta");
-        writer.beginObject();
         if (lastBeen != null) {
+
             writer.name("location");
             writeLocation(writer, lastBeen);
-        }
-        writer.endObject();
 
+        }
         writer.name("beacons");
         Utils.writeToJsonArray(writer, toQuery);
-
         writer.endObject();
         writer.close();
     }
@@ -133,7 +129,7 @@ public class Network {
 
         // If there is no result, It will throw an exception.
         if (result == null) {
-            L.e("[Network] Analysis result error");
+            //L.e("[Network] Analysis result error");
             throw new ResultNotPresentException();
         }
 
@@ -163,10 +159,10 @@ public class Network {
     }
 
     // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
-    private static ArrayList<Senz> readSenzResult(JsonReader reader) throws IOException {
+    private static ArrayList<BeaconWithSenz> readResultTest(JsonReader reader) throws IOException {
         String name, result = null;
         HashMap<String, Senz> senzesById = null;
-        ArrayList<Senz> bwss = null;
+        ArrayList<BeaconWithSenz> bwss = null;
         ArrayList<Pair<Beacon, String>> tmp = null;
 
         //L.i("[Network] The receiving message is: " + reader.toString());
@@ -188,17 +184,17 @@ public class Network {
 
         // If there is no result, It will throw an exception.
         if (result == null) {
-            L.e("[Network] Analysis result error");
+            //L.e("[Network] Analysis result error");
             throw new ResultNotPresentException();
         }
 
         // Analysis the result, and
         // Pick up BeaconWithSenz object from result.
-        /*reader = new JsonReader(new StringReader(result));
+        reader = new JsonReader(new StringReader(result));
         reader.beginObject();
         while (reader.hasNext()) {
             name = reader.nextName();
-            if (name.equals("senzes")) {
+            if (name.equals("senz")) {
                 senzesById = readSenzHashMapFromJsonObject(reader);
             }
             else if (name.equals("beacons")) {
@@ -212,7 +208,7 @@ public class Network {
             }
         }
         reader.endObject();
-        reader.close();*/
+        reader.close();
 
         return bwss;
     }
@@ -245,6 +241,7 @@ public class Network {
                 // Url's connection can be used to output(or input), if you want the connection output, then set it true.
                 urlConnection.setDoOutput(true);
                 urlConnection.setChunkedStreamingMode(0);
+                L.i("test!");
             }
             // Write the sending message.
             w.write(urlConnection.getOutputStream());
@@ -307,32 +304,6 @@ public class Network {
                     @Override
                     public ArrayList<BeaconWithSenz> read(InputStream is) throws IOException {
                         return readResult(new JsonReader(new InputStreamReader(is)));
-                    }
-                });
-    }
-
-    // Query with Location info.
-    public static ArrayList<Senz> queryWithLocation(final Location location) throws IOException {
-        return doQuery(
-                new URL(queryUrl + "beacons"),
-                new QueryWriter() {
-                    @Override
-                    public void write(OutputStream os) throws IOException {
-                        // Init the StringWriter sized fo 100
-                        StringWriter sw = new StringWriter(100);
-                        // Write the beacons info and location into StringWriter.
-                        writeLocationQueryPost(new JsonWriter(sw), location);
-                        L.i("[Network] The 'message' is: " + sw.toString());
-                        // Write location info into a JsonWriter,
-                        // which Creates a new instance that writes a JSON-encoded stream to os.
-                        // The os will return to be the post's para
-                        writeLocationQueryPost(new JsonWriter(new OutputStreamWriter(os)), location);
-                    }
-                },
-                new ResultReader<ArrayList<Senz>>() {
-                    @Override
-                    public ArrayList<Senz> read(InputStream is) throws IOException {
-                        return readSenzResult(new JsonReader(new InputStreamReader(is)));
                     }
                 });
     }

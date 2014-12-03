@@ -79,21 +79,21 @@ public class Query {
             // - senzesFromLocation: send location to AVOSCloud Server to get Senz info back.
             @Override
             public ArrayList<Senz> runAndReturn() throws IOException {
-                L.i(" - query running for locations");
+                L.i("query running for locations");
                 return senzesFromLocation(location);
             }
             // Finally, it will handle the result which is returned by runAndReturn()
             // - onSenzReady: It is defined by user, here we can use it to get senz result.
             @Override
             public void onReturn(ArrayList<Senz> result) {
-                L.i(" - query returnning");
+                L.i("query returnning");
                 //L.i(" - query senz: " + result.toString());
                 cb.onSenzReady(result);
             }
             // If it throw an error, it will run this.
             @Override
             public void onError(Exception e) {
-                L.e(" - query location error");
+                L.e("query location error");
                 eh.onError(e);
             }
         });
@@ -105,20 +105,20 @@ public class Query {
         Asyncfied.runAsyncfiable(new Asyncfied.Asyncfiable<ArrayList<Senz>>() {
             @Override
             public ArrayList<Senz> runAndReturn() throws IOException {
-                L.i(" - query running for beacons");
+                L.i("query running for beacons");
                 return senzesFromBeacons(beacons, location);
             }
 
             @Override
             public void onReturn(ArrayList<Senz> result) {
-                L.i(" - query returnning");
+                L.i("query returnning");
                 //L.i(" - query senz: " + result.toString());
                 cb.onSenzReady(result);
             }
 
             @Override
             public void onError(Exception e) {
-                L.e(" - query beacons error");
+                L.e("query beacons error");
                 eh.onError(e);
             }
         });

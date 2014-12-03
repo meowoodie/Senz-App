@@ -44,19 +44,13 @@ public class MyActivity extends Activity {
             senzManager.startTelepathy(new SenzManager.TelepathyCallback() {
                 @Override
                 // When the Beacon device is nearby
-                public void onDiscover(List<Senz> senzes) {
-//                    runOnUiThread(
-//                            // some runnable
-//                    );
-                    //Log.i(TAG,"Discover!!!!!!!!!!!!");
+                public void dicoverSenz(List<Senz> senzes) {
+                    Log.i(TAG,"Discover a new Senz!");
                 }
+
                 @Override
-                // When a Beacon left
                 public void onLeave(List<Senz> senzes) {
-//                    runOnUiThread(
-//                            // some runnable
-//                    );
-                    //Log.i(TAG,"Left!!!!!!!!!!!!");
+
                 }
             });
         }
@@ -65,14 +59,5 @@ public class MyActivity extends Activity {
         }
 
     }
-    @Override
-    public void onDestroy()
-    {
-        try {
-            senzManager.stopTelepathy();
-            Log.i(TAG,"Stop! Telepathy!");
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
+
 }
