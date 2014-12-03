@@ -22,8 +22,20 @@ public class Senz implements Parcelable, Jsonable {
     private String mWhere;
     private String mWith_somebody;
     private String mWith_a_mood;
+    private String mWhere_group;
     private HashMap<String, String> mEntities;
 
+    public Senz(String mid, String mdoing, String mwhile, String mwhen, String mwhere, String somebody, String mood, String group)
+    {
+        mId = mid;
+        mDoing = mdoing;
+        mWhile = mwhile;
+        mWhen = mwhen;
+        mWhere = mwhere;
+        mWith_somebody = somebody;
+        mWith_a_mood = mood;
+        mWhere_group = group;
+    }
 
     @Override
     public int hashCode() {
@@ -69,6 +81,10 @@ public class Senz implements Parcelable, Jsonable {
         return mWith_a_mood;
     }
 
+    public String _group() {
+        return mWhere_group;
+    }
+
     public Map<String, String> entities() {
         return mEntities;
     }
@@ -88,6 +104,7 @@ public class Senz implements Parcelable, Jsonable {
         out.writeString(this._where());
         out.writeString(this._somebody());
         out.writeString(this._mood());
+        out.writeString(this._group());
         Utils.writeParcelStringMap(out, this.entities());
     }
 
@@ -101,6 +118,7 @@ public class Senz implements Parcelable, Jsonable {
         this.mWhere = in.readString();
         this.mWith_somebody = in.readString();
         this.mWith_a_mood = in.readString();
+        this.mWhere_group = in.readString();
         this.mEntities = new HashMap<String, String>();
         Utils.readParcelStringMap(this.mEntities, in);
     }

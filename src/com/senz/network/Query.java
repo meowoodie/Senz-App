@@ -34,7 +34,7 @@ public class Query {
     }
 
 
-    static public ArrayList<Senz> senzesFromBeacons(Collection<Beacon> beacons, Location lastBeen) throws IOException {
+    /*static public ArrayList<Senz> senzesFromBeacons(Collection<Beacon> beacons, Location lastBeen) throws IOException {
         // Init a HashSet to store senzes' info.
         HashSet<Senz> result = new HashSet<Senz>();
         ArrayList<Beacon> toQueryServer = new ArrayList<Beacon>();
@@ -58,7 +58,7 @@ public class Query {
 
         // return the hashset.
         return new ArrayList<Senz>(result);
-    }
+    }*/
 
     static public ArrayList<Senz> senzesFromLocation(Location location) throws IOException {
         // Init a HashSet to store senz' info.
@@ -106,7 +106,8 @@ public class Query {
             @Override
             public ArrayList<Senz> runAndReturn() throws IOException {
                 L.i("query running for beacons");
-                return senzesFromBeacons(beacons, location);
+                //return senzesFromBeacons(beacons, location);
+                return Network.queryBeacons(beacons, location);
             }
 
             @Override
