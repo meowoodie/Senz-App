@@ -114,9 +114,9 @@ public class Network {
         return senzes;
     }
 
-    private static ArrayList<Senz> readPOIFromJson(JsonReader reader) throws IOException {
+    private static POI readPOIFromJson(JsonReader reader) throws IOException {
         ArrayList<Senz> senzes = new ArrayList<Senz>();
-        String name, _at, _poi_group;
+        String name, _at = "", _poi_group = "";
         reader.beginObject();
         while (reader.hasNext()) {
             name = reader.nextName();
@@ -132,8 +132,8 @@ public class Network {
             }
         }
         reader.endObject();
-        //Senz senz = new Senz(reader);
-        return senzes;
+
+        return new POI(_at, _poi_group);
     }
 
     private static ArrayList<Senz> readTOIFromJson(JsonReader reader) throws IOException {
@@ -393,4 +393,16 @@ public class Network {
 
     public static class ResultNotPresentException extends IOException {
     }
+
+    static class POI{
+        public String _at;
+        public String _poi_group;
+        public POI(String _a, String _p)
+        {
+            _at = _a;
+            _poi_group = _p;
+        }
+    }
+    private class TOI{}
+
 }
