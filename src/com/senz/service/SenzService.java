@@ -309,7 +309,6 @@ public class SenzService extends Service {
                     //setAlarm(SenzService.this.mLookNearbyBroadcastPendingIntent, TimeUnit.MINUTES.toMillis(1));
                 }
             });
-        //setAlarm(this.mLookNearbyBroadcastPendingIntent, this.mTelepathyPeriod.GPSMillis);
     }
 
     private class AfterScanTask implements Runnable {
@@ -347,8 +346,8 @@ public class SenzService extends Service {
                                 }
                                 // clear cache in mBeaconsInACycle(bluetooth's info)
                                 SenzService.this.mBeaconsInACycle.clear();
-                                if (SenzService.this.mStarted == false)
-                                    return;
+                                //if (!SenzService.this.mStarted)
+                                //    return;
                                 //SenzService.this.setAlarmStart();
                             }
                         },

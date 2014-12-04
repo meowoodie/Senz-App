@@ -22,6 +22,8 @@ import com.senz.utils.L;
 import com.senz.core.Senz;
 import com.senz.core.Utils;
 import com.senz.core.Beacon;
+import com.senz.core.POI;
+import com.senz.core.TOI;
 import com.senz.core.BeaconWithSenz;
 
 /***********************************************************************************************************************
@@ -127,8 +129,8 @@ public class Network {
     private static ArrayList<Senz> readResult(JsonReader reader) throws IOException {
         String name, result = null;
         ArrayList<Senz> senzes = new ArrayList<Senz>();
-        TOI toi = null;
-        POI poi = null;
+        TOI toi = new TOI("null", "null");
+        POI poi = new POI("null", "null");
         //L.i("[Network] The receiving message is: " + reader.toString());
         // read result from reader
         reader.beginObject();
@@ -162,11 +164,9 @@ public class Network {
             }
             else if (name.equals("POI")) {
                 poi = readPOIFromJson(reader);
-                //L.i("POI");
             }
             else if (name.equals("TOI")){
                 toi = readTOIFromJson(reader);
-                //L.i("TOI");
             }
             else{
                 reader.skipValue();
@@ -281,26 +281,6 @@ public class Network {
     public static class ResultNotPresentException extends IOException {
     }
 
-    // POI
-    static class POI{
-        public String _at;
-        public String _poi_group;
-        POI(String _a, String _p)
-        {
-            _at = _a;
-            _poi_group = _p;
-        }
-    }
-    // TOI
-    static class TOI{
-        public String _while;
-        public String _when;
-        TOI(String _wi, String _we)
-        {
-            _while = _wi;
-            _when = _we;
-        }
-    }
     /*private static HashMap<String, Senz> readSenzHashMapFromJsonObject(JsonReader reader) throws IOException {
         HashMap<String, Senz> msenz = new HashMap<String, Senz>();
         reader.beginObject();

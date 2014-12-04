@@ -20,6 +20,8 @@ import android.os.RemoteException;
 import android.util.Log;
 import com.senz.core.SenzManager;
 import com.senz.core.Senz;
+import com.senz.core.POI;
+import com.senz.core.TOI;
 
 public class MyActivity extends Activity {
 
@@ -46,13 +48,21 @@ public class MyActivity extends Activity {
                 // When the Beacon device is nearby
                 public void dicoverSenz(List<Senz> senzes) {
                     Log.i(TAG,"Discover a new Senz!");
-                    Log.i(TAG,"senz: where -> " + senzes.get(1)._where() + " while -> " + senzes.get(1)._while() + " when -> " + senzes.get(1)._when());
+                    Log.i(TAG,"senz: doing -> " + senzes.get(0)._doing() + " where -> " + senzes.get(0)._where() + " when -> " + senzes.get(0)._when());
                 }
 
                 @Override
-                public void onLeave(List<Senz> senzes) {
-
+                public void discoverPOI(POI poi) {
+                    Log.i(TAG,"Discover a new POI!");
+                    Log.i(TAG,"POI: at -> " + poi._at + "   poi group -> " + poi._poi_group);
                 }
+
+                @Override
+                public void discoverTOI(TOI toi) {
+                    Log.i(TAG,"Discover a new TOI!");
+                    Log.i(TAG,"POI: while -> " + toi._while + "   when -> " + toi._when);
+                }
+
             });
         }
         catch (Exception e) {
