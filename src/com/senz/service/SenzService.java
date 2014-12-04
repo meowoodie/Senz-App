@@ -69,7 +69,8 @@ public class SenzService extends Service {
 
     // Sensor Manager
     private SensorInfo mSensorInfo;
-    // Sensor Data Container
+    // Device Info
+    private DeviceInfo mDeviceInfo;
 
     //Writer
     private Writer gyroWriter = null;
@@ -152,7 +153,7 @@ public class SenzService extends Service {
         L.i("Creating service ...");
 
         this.mGPSInfo = new GPSInfo(this);
-
+        this.mDeviceInfo = new DeviceInfo(this);
         // Instantiation of AlarmManager.
         // - It broadcasts a notification after a setting time if you call set().
         this.mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);

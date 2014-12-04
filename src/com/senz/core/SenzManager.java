@@ -226,15 +226,7 @@ public class SenzManager {
         }
     }
 
-    public void setErrorHandler(ErrorHandler h) {
-        if (h == null)
-            throw new NullPointerException();
-        this.mErrorHandler = h;
-    }
 
-    public List<Senz> getLastDiscoveredSenzes() {
-        return this.mLastDiscovered;
-    }
 
     private void respondSenz(final ArrayList<Senz> senzes) {
         L.i("[SenzManager] Senzes Discovered count:" + senzes.size());
