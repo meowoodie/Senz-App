@@ -60,7 +60,7 @@ public class Query {
         return new ArrayList<Senz>(result);
     }*/
 
-    static public ArrayList<Senz> senzesFromLocation(Location location) throws IOException {
+    /*static public ArrayList<Senz> senzesFromLocation(Location location) throws IOException {
         // Init a HashSet to store senz' info.
         HashSet<Senz> result = new HashSet<Senz>();
         // Query on server with those Locations.
@@ -69,7 +69,7 @@ public class Query {
         for (BeaconWithSenz bws : bwss)
             result.add(bws.getSenz());
         return new ArrayList<Senz>(result);
-    }
+    }*/
 
     // This function provide location and callback, and it will query on server, then return a result about senz.
     static public void senzesFromLocationAsync(final Location location, final SenzReadyCallback cb, final ErrorHandler eh) {
@@ -80,7 +80,8 @@ public class Query {
             @Override
             public ArrayList<Senz> runAndReturn() throws IOException {
                 L.i("query running for locations");
-                return senzesFromLocation(location);
+                //return senzesFromLocation(location);
+                return Network.queryLocation(location);
             }
             // Finally, it will handle the result which is returned by runAndReturn()
             // - onSenzReady: It is defined by user, here we can use it to get senz result.

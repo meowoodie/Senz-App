@@ -46,7 +46,7 @@ public class MyActivity extends Activity {
                 // When the Beacon device is nearby
                 public void dicoverSenz(List<Senz> senzes) {
                     Log.i(TAG,"Discover a new Senz!");
-                    Log.i(TAG,"senz: id -> " + senzes.get(0)._id() + " doing -> " + senzes.get(0)._doing());
+                    Log.i(TAG,"senz: where -> " + senzes.get(1)._where() + " while -> " + senzes.get(1)._while() + " when -> " + senzes.get(1)._when());
                 }
 
                 @Override

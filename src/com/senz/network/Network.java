@@ -53,29 +53,255 @@ public class Network {
     private static void writeBeaconsQueryPost(JsonWriter writer, Collection<Beacon> toQuery, Location lastBeen) throws IOException {
         writer.beginObject();
         if (lastBeen != null) {
-
             writer.name("location");
             writeLocation(writer, lastBeen);
-
         }
         writer.name("beacons");
         Utils.writeToJsonArray(writer, toQuery);
         writer.endObject();
         writer.close();
     }
+
     // Write Beacons info into JsonWriter and ready to send request.
     private static void writeLocationQueryPost(JsonWriter writer, Location location) throws IOException {
         writer.beginObject();
-
         writer.name("location");
         writeLocation(writer, location);
-
         writer.endObject();
         writer.close();
     }
 
-    //
-    private static HashMap<String, Senz> readSenzHashMapFromJsonObject(JsonReader reader) throws IOException {
+    private static ArrayList<Senz> readSenzesFromJson(JsonReader reader) throws IOException {
+        ArrayList<Senz> senzes = new ArrayList<Senz>();
+        reader.beginArray();
+        while (reader.hasNext()) {
+            Senz senz = new Senz(reader);
+            senzes.add(senz);
+        }
+        reader.endArray();
+        return senzes;
+    }
+
+    private static POI readPOIFromJson(JsonReader reader) throws IOException {
+        String name, _at = "", _poi_group = "";
+        reader.beginObject();
+        while (reader.hasNext()) {
+            name = reader.nextName();
+            //reader.nextString();
+            if (name.equals("at")) {
+                _at = reader.nextString();
+            }
+            else if (name.equals("poi_group")) {
+                _poi_group = reader.nextString();
+            }
+            else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+
+        return new POI(_at, _poi_group);
+    }
+
+    private static TOI readTOIFromJson(JsonReader reader) throws IOException {
+        String name, _while = "", _when = "";
+        reader.beginObject();
+        while (reader.hasNext()) {
+            name = reader.nextName();
+            //reader.nextString();
+            if (name.equals("while")) {
+                _while = reader.nextString();
+            }
+            else if (name.equals("when")) {
+                _when = reader.nextString();
+            }
+            else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+        return new TOI(_while, _when);
+    }
+
+    // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
+    private static ArrayList<Senz> readResult(JsonReader reader) throws IOException {
+        String name, result = null;
+        ArrayList<Senz> senzes = new ArrayList<Senz>();
+        TOI toi = null;
+        POI poi = null;
+        //L.i("[Network] The receiving message is: " + reader.toString());
+        // read result from reader
+        reader.beginObject();
+        while (reader.hasNext()) {
+            name = reader.nextName();
+            // Get result's item.
+            if (name.equals("result")) {
+                result = reader.nextString();
+                L.i("[Network] The 'result' is: " + result);
+            }
+            else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+        reader.close();
+        // If there is no result, It will throw an exception.
+        if (result == null) {
+            //L.e("[Network] Analysis result error");
+            throw new ResultNotPresentException();
+        }
+
+        // Analysis the result, and
+        // Pick up BeaconWithSenz object from result.
+        reader = new JsonReader(new StringReader(result));
+        reader.beginObject();
+        while (reader.hasNext()) {
+            name = reader.nextName();
+            if (name.equals("senz")) {
+                senzes = readSenzesFromJson(reader);
+            }
+            else if (name.equals("POI")) {
+                poi = readPOIFromJson(reader);
+                //L.i("POI");
+            }
+            else if (name.equals("TOI")){
+                toi = readTOIFromJson(reader);
+                //L.i("TOI");
+            }
+            else{
+                reader.skipValue();
+            }
+
+        }
+        reader.endObject();
+        reader.close();
+        // TOI and POI
+        if(senzes.size() == 0) {
+            Senz senz = new Senz("null", "null", toi._while, toi._when, poi._at, "null", "null", poi._poi_group);
+            senzes.add(senz);
+        }
+        return senzes;
+    }
+
+    private interface QueryWriter {
+        public void write(OutputStream os) throws IOException;
+    }
+
+    private interface ResultReader<T> {
+        public T read(InputStream is) throws IOException;
+    }
+
+    // It's the main function for sending http request.
+    public static <T> T doQuery(URL url, QueryWriter w, ResultReader<T> r) throws IOException {
+        // According to url's type, url.openConnection will return different object of URLConnection's subclass.
+        // Here it will return a object of HttpURLConnection, because of url's head is "http".
+        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        // Set http's header.
+        urlConnection.setConnectTimeout(timeout);
+        urlConnection.setRequestProperty("Content-Type", "application/json");
+        urlConnection.setRequestProperty("charset", "utf-8");
+        urlConnection.setRequestProperty("X-AVOSCloud-Application-Id", AVOS_ID);
+        urlConnection.setRequestProperty("X-AVOSCloud-Application-Key", AVOS_KEY);
+        urlConnection.setRequestProperty("X-AVOSCloud-Application-Production", "0");
+        T t = null;
+
+        try {
+            // writer is not allowed be null.
+            if (w != null) {
+                // Url's connection can be used to output(or input), if you want the connection output, then set it true.
+                urlConnection.setDoOutput(true);
+                urlConnection.setChunkedStreamingMode(0);
+                L.i("test!");
+            }
+            // Write the sending message.
+            w.write(urlConnection.getOutputStream());
+            // Read the receiving message.
+            t = r.read(urlConnection.getInputStream());
+        }
+        finally {
+            urlConnection.disconnect();
+        }
+
+        return t;
+    }
+
+    // Query with Location info.
+    public static ArrayList<Senz> queryLocation(final Location location) throws IOException {
+        return doQuery(
+                new URL(queryUrl + "beacons"),
+                new QueryWriter() {
+                    @Override
+                    public void write(OutputStream os) throws IOException {
+                        // Init the StringWriter sized fo 100
+                        StringWriter sw = new StringWriter(100);
+                        // Write the beacons info and location into StringWriter.
+                        writeLocationQueryPost(new JsonWriter(sw), location);
+                        L.i("[Network] The 'message' is: " + sw.toString());
+                        // Write location info into a JsonWriter,
+                        // which Creates a new instance that writes a JSON-encoded stream to os.
+                        // The os will return to be the post's para
+                        writeLocationQueryPost(new JsonWriter(new OutputStreamWriter(os)), location);
+                    }
+                },
+                new ResultReader<ArrayList<Senz>>() {
+                    @Override
+                    public ArrayList<Senz> read(InputStream is) throws IOException {
+                        return readResult(new JsonReader(new InputStreamReader(is)));
+                    }
+                });
+    }
+
+    // Query with Beacons info.
+    public static ArrayList<Senz> queryBeacons(final Collection<Beacon> toQuery, final Location lastBeen) throws IOException {
+        return doQuery(
+                new URL(queryUrl + "beacons"),
+                new QueryWriter() {
+                    @Override
+                    // This callback will write the location and beacons info into os.
+                    public void write(OutputStream os) throws IOException {
+                        // Init the StringWriter sized fo 100
+                        StringWriter sw = new StringWriter(100);
+                        // Write the beacons info and location into StringWriter.
+                        writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
+                        L.i("[Network] The sending message is: " + sw.toString());
+                        // Write location and beacons info into a JsonWriter,
+                        // which Creates a new instance that writes a JSON-encoded stream to os.
+                        // The os will return to be the post's para
+                        writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
+                    }
+                },
+                new ResultReader<ArrayList<Senz>>() {
+                    @Override
+                    public ArrayList<Senz> read(InputStream is) throws IOException {
+                        return readResult(new JsonReader(new InputStreamReader(is)));
+                    }
+                });
+    }
+
+    public static class ResultNotPresentException extends IOException {
+    }
+
+    // POI
+    static class POI{
+        public String _at;
+        public String _poi_group;
+        POI(String _a, String _p)
+        {
+            _at = _a;
+            _poi_group = _p;
+        }
+    }
+    // TOI
+    static class TOI{
+        public String _while;
+        public String _when;
+        TOI(String _wi, String _we)
+        {
+            _while = _wi;
+            _when = _we;
+        }
+    }
+    /*private static HashMap<String, Senz> readSenzHashMapFromJsonObject(JsonReader reader) throws IOException {
         HashMap<String, Senz> msenz = new HashMap<String, Senz>();
         reader.beginObject();
         while (reader.hasNext())
@@ -101,65 +327,37 @@ public class Network {
         }
         reader.endArray();
         return tmp;
-    }
+    }*/
 
-    private static ArrayList<Senz> readSenzesFromJson(JsonReader reader) throws IOException {
-        ArrayList<Senz> senzes = new ArrayList<Senz>();
-        reader.beginArray();
-        while (reader.hasNext()) {
-            Senz senz = new Senz(reader);
-            senzes.add(senz);
-        }
-        reader.endArray();
-        return senzes;
-    }
-
-    private static POI readPOIFromJson(JsonReader reader) throws IOException {
-        ArrayList<Senz> senzes = new ArrayList<Senz>();
-        String name, _at = "", _poi_group = "";
-        reader.beginObject();
-        while (reader.hasNext()) {
-            name = reader.nextName();
-            //reader.nextString();
-            if (name.equals("at")) {
-                _at = reader.nextString();
-            }
-            else if (name.equals("poi_group")) {
-                _poi_group = reader.nextString();
-            }
-            else {
-                reader.skipValue();
-            }
-        }
-        reader.endObject();
-
-        return new POI(_at, _poi_group);
-    }
-
-    private static ArrayList<Senz> readTOIFromJson(JsonReader reader) throws IOException {
-        ArrayList<Senz> senzes = new ArrayList<Senz>();
-        String name, _while, _when;
-        reader.beginObject();
-        while (reader.hasNext()) {
-            name = reader.nextName();
-            //reader.nextString();
-            if (name.equals("while")) {
-                _while = reader.nextString();
-            }
-            else if (name.equals("when")) {
-                _when = reader.nextString();
-            }
-            else {
-                reader.skipValue();
-            }
-        }
-        reader.endObject();
-        //Senz senz = new Senz(reader);
-        return senzes;
-    }
+    // Query with Beacons info.
+    /*public static ArrayList<BeaconWithSenz> queryBeacons(final Collection<Beacon> toQuery, final Location lastBeen) throws IOException {
+        return doQuery(
+                new URL(queryUrl + "beacons"),
+                new QueryWriter() {
+                    @Override
+                    // This callback will write the location and beacons info into os.
+                    public void write(OutputStream os) throws IOException {
+                        // Init the StringWriter sized fo 100
+                        StringWriter sw = new StringWriter(100);
+                        // Write the beacons info and location into StringWriter.
+                        writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
+                        L.i("[Network] The sending message is: " + sw.toString());
+                        // Write location and beacons info into a JsonWriter,
+                        // which Creates a new instance that writes a JSON-encoded stream to os.
+                        // The os will return to be the post's para
+                        writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
+                    }
+                },
+                new ResultReader<ArrayList<BeaconWithSenz>>() {
+                    @Override
+                    public ArrayList<BeaconWithSenz> read(InputStream is) throws IOException {
+                        return readResult(new JsonReader(new InputStreamReader(is)));
+                    }
+                });
+    }*/
 
     // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
-    private static ArrayList<BeaconWithSenz> readResultTmp(JsonReader reader) throws IOException {
+    /*private static ArrayList<BeaconWithSenz> readResultTmp(JsonReader reader) throws IOException {
         String name, result = null;
         HashMap<String, Senz> senzesById = null;
         ArrayList<BeaconWithSenz> bwss = null;
@@ -211,198 +409,5 @@ public class Network {
         reader.close();
 
         return bwss;
-    }
-
-    // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
-    private static ArrayList<Senz> readResult(JsonReader reader) throws IOException {
-        String name, result = null;
-        ArrayList<Senz> senzes = new ArrayList<Senz>();
-
-        //L.i("[Network] The receiving message is: " + reader.toString());
-        // read result from reader
-        reader.beginObject();
-        while (reader.hasNext()) {
-            name = reader.nextName();
-            // Get result's item.
-            if (name.equals("result")) {
-                result = reader.nextString();
-                L.i("[Network] The 'result' is: " + result);
-            }
-            else {
-                reader.skipValue();
-            }
-        }
-        reader.endObject();
-        reader.close();
-
-        // If there is no result, It will throw an exception.
-        if (result == null) {
-            //L.e("[Network] Analysis result error");
-            throw new ResultNotPresentException();
-        }
-
-        // Analysis the result, and
-        // Pick up BeaconWithSenz object from result.
-        reader = new JsonReader(new StringReader(result));
-        reader.beginObject();
-        while (reader.hasNext()) {
-            name = reader.nextName();
-            if (name.equals("senz")) {
-                senzes = readSenzesFromJson(reader);
-            }
-            else if (name.equals("POI")) {
-                readPOIFromJson(reader);
-                //L.i("POI");
-            }
-            else if (name.equals("TOI")){
-                readTOIFromJson(reader);
-                //L.i("TOI");
-            }
-            else{
-                reader.skipValue();
-            }
-
-        }
-        reader.endObject();
-        reader.close();
-
-        return senzes;
-    }
-
-    private interface QueryWriter {
-        public void write(OutputStream os) throws IOException;
-    }
-
-    private interface ResultReader<T> {
-        public T read(InputStream is) throws IOException;
-    }
-
-    // It's the main function for sending http request.
-    public static <T> T doQuery(URL url, QueryWriter w, ResultReader<T> r) throws IOException {
-        // According to url's type, url.openConnection will return different object of URLConnection's subclass.
-        // Here it will return a object of HttpURLConnection, because of url's head is "http".
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-        // Set http's header.
-        urlConnection.setConnectTimeout(timeout);
-        urlConnection.setRequestProperty("Content-Type", "application/json");
-        urlConnection.setRequestProperty("charset", "utf-8");
-        urlConnection.setRequestProperty("X-AVOSCloud-Application-Id", AVOS_ID);
-        urlConnection.setRequestProperty("X-AVOSCloud-Application-Key", AVOS_KEY);
-        urlConnection.setRequestProperty("X-AVOSCloud-Application-Production", "0");
-        T t = null;
-
-        try {
-            // writer is not allowed be null.
-            if (w != null) {
-                // Url's connection can be used to output(or input), if you want the connection output, then set it true.
-                urlConnection.setDoOutput(true);
-                urlConnection.setChunkedStreamingMode(0);
-                L.i("test!");
-            }
-            // Write the sending message.
-            w.write(urlConnection.getOutputStream());
-            // Read the receiving message.
-            t = r.read(urlConnection.getInputStream());
-        }
-        finally {
-            urlConnection.disconnect();
-        }
-
-        return t;
-    }
-
-    // Query with Beacons info.
-    /*public static ArrayList<BeaconWithSenz> queryBeacons(final Collection<Beacon> toQuery, final Location lastBeen) throws IOException {
-        return doQuery(
-                new URL(queryUrl + "beacons"),
-                new QueryWriter() {
-                    @Override
-                    // This callback will write the location and beacons info into os.
-                    public void write(OutputStream os) throws IOException {
-                        // Init the StringWriter sized fo 100
-                        StringWriter sw = new StringWriter(100);
-                        // Write the beacons info and location into StringWriter.
-                        writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
-                        L.i("[Network] The sending message is: " + sw.toString());
-                        // Write location and beacons info into a JsonWriter,
-                        // which Creates a new instance that writes a JSON-encoded stream to os.
-                        // The os will return to be the post's para
-                        writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
-                    }
-                },
-                new ResultReader<ArrayList<BeaconWithSenz>>() {
-                    @Override
-                    public ArrayList<BeaconWithSenz> read(InputStream is) throws IOException {
-                        return readResult(new JsonReader(new InputStreamReader(is)));
-                    }
-                });
     }*/
-
-    // Query with Location info.
-    public static ArrayList<BeaconWithSenz> queryLocation(final Location location) throws IOException {
-        return doQuery(
-                new URL(queryUrl + "beacons"),
-                new QueryWriter() {
-                    @Override
-                    public void write(OutputStream os) throws IOException {
-                        // Init the StringWriter sized fo 100
-                        StringWriter sw = new StringWriter(100);
-                        // Write the beacons info and location into StringWriter.
-                        writeLocationQueryPost(new JsonWriter(sw), location);
-                        L.i("[Network] The 'message' is: " + sw.toString());
-                        // Write location info into a JsonWriter,
-                        // which Creates a new instance that writes a JSON-encoded stream to os.
-                        // The os will return to be the post's para
-                        writeLocationQueryPost(new JsonWriter(new OutputStreamWriter(os)), location);
-                    }
-                },
-                new ResultReader<ArrayList<BeaconWithSenz>>() {
-                    @Override
-                    public ArrayList<BeaconWithSenz> read(InputStream is) throws IOException {
-                        return readResultTmp(new JsonReader(new InputStreamReader(is)));
-                    }
-                });
-    }
-
-    // Query with Beacons info.
-    public static ArrayList<Senz> queryBeacons(final Collection<Beacon> toQuery, final Location lastBeen) throws IOException {
-        return doQuery(
-                new URL(queryUrl + "beacons"),
-                new QueryWriter() {
-                    @Override
-                    // This callback will write the location and beacons info into os.
-                    public void write(OutputStream os) throws IOException {
-                        // Init the StringWriter sized fo 100
-                        StringWriter sw = new StringWriter(100);
-                        // Write the beacons info and location into StringWriter.
-                        writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
-                        L.i("[Network] The sending message is: " + sw.toString());
-                        // Write location and beacons info into a JsonWriter,
-                        // which Creates a new instance that writes a JSON-encoded stream to os.
-                        // The os will return to be the post's para
-                        writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
-                    }
-                },
-                new ResultReader<ArrayList<Senz>>() {
-                    @Override
-                    public ArrayList<Senz> read(InputStream is) throws IOException {
-                        return readResult(new JsonReader(new InputStreamReader(is)));
-                    }
-                });
-    }
-
-    public static class ResultNotPresentException extends IOException {
-    }
-
-    static class POI{
-        public String _at;
-        public String _poi_group;
-        public POI(String _a, String _p)
-        {
-            _at = _a;
-            _poi_group = _p;
-        }
-    }
-    private class TOI{}
-
 }
