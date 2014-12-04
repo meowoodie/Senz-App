@@ -50,25 +50,20 @@ public class MyActivity extends Activity {
                     Log.i(TAG,"Discover a new Senz!");
                     Log.i(TAG,"senz: doing -> " + senzes.get(0)._doing() + " where -> " + senzes.get(0)._where() + " when -> " + senzes.get(0)._when());
                 }
-
                 @Override
                 public void discoverPOI(POI poi) {
                     Log.i(TAG,"Discover a new POI!");
                     Log.i(TAG,"POI: at -> " + poi._at + "   poi group -> " + poi._poi_group);
                 }
-
                 @Override
                 public void discoverTOI(TOI toi) {
                     Log.i(TAG,"Discover a new TOI!");
                     Log.i(TAG,"POI: while -> " + toi._while + "   when -> " + toi._when);
                 }
-
             });
         }
         catch (Exception e) {
             Log.d(TAG, "unable to start telepathy", e);
         }
-
     }
-
 }

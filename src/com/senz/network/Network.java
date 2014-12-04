@@ -176,10 +176,8 @@ public class Network {
         reader.endObject();
         reader.close();
         // TOI and POI
-        if(senzes.size() == 0) {
-            Senz senz = new Senz("null", "null", toi._while, toi._when, poi._at, "null", "null", poi._poi_group);
-            senzes.add(senz);
-        }
+        Senz senz = new Senz("null", "null", toi._while, toi._when, poi._at, "null", "null", poi._poi_group);
+        senzes.add(senz);
         return senzes;
     }
 
