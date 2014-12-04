@@ -137,7 +137,7 @@ public class DeviceInfo {
             " & Model : " + sysModel + " & System Version : " + sysVersion);
     }
 
-    //
+    // Used to get wifi mac address
     public void getWifiMac(){
         WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
