@@ -19,20 +19,20 @@ import com.senz.utils.L;
 public class DeviceInfo {
     private Context context = null;
     // RAM info
-    public String deviceMemory    = "unknown";
+    private String deviceMemory    = "unknown";
     // sdCard info
-    public long   sdCardSize      = 0;
-    public long   sdCardLeft      = 0;
+    private long   sdCardSize      = 0;
+    private long   sdCardLeft      = 0;
     // CPU info
-    public String CPUmodel        = "unknown";
-    public String CPUfreq         = "unknown";
+    private String CPUmodel        = "unknown";
+    private String CPUfreq         = "unknown";
     // System version info
-    public String kernelVersion   = "unknown";
-    public String firmwareVersion = "unknown";
-    public String sysModel        = "unknown";
-    public String sysVersion      = "unknown";
+    private String kernelVersion   = "unknown";
+    private String firmwareVersion = "unknown";
+    private String sysModel        = "unknown";
+    private String sysVersion      = "unknown";
     // WIFI info
-    public String WIFImac         = "unknown";
+    private String WIFImac         = "unknown";
 
     public DeviceInfo(Context ctx)
     {
@@ -149,5 +149,45 @@ public class DeviceInfo {
         else {
             L.i("Get WIFI mac error");
         }
+    }
+
+    public String getDeviceMemory() {
+        return deviceMemory;
+    }
+
+    public long getSdCardSize() {
+        return sdCardSize;
+    }
+
+    public long getSdCardLeft() {
+        return sdCardLeft;
+    }
+
+    public String getCPUmodel() {
+        return CPUmodel;
+    }
+
+    public String getCPUfreq() {
+        return CPUfreq;
+    }
+
+    public String getKernelVersion() {
+        return kernelVersion;
+    }
+
+    public String getFirmwareVersion() {
+        return firmwareVersion;
+    }
+
+    public String getSysModel() {
+        return sysModel;
+    }
+
+    public String getSysVersion() {
+        return sysVersion;
+    }
+
+    public String getWIFImac() {
+        return WIFImac;
     }
 }

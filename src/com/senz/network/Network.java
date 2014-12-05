@@ -48,6 +48,22 @@ public class Network {
         writer.endObject();
     }
 
+    // Write App list into JsonWriter
+    private static void writeDeviceInfo(JsonWriter writer, DeviceInfo device) throws IOException {
+        writer.beginObject();
+        writer.name("wifi_mac").value(device.getWIFImac());
+        writer.name("firmware_version").value(device.getFirmwareVersion());
+        writer.name("kernel_version").value(device.getKernelVersion());
+        writer.name("system_version").value(device.getSysVersion());
+        writer.name("system_model").value(device.getSysModel());
+        writer.name("cpu_frequency").value(device.getCPUfreq());
+        writer.name("cpu_model").value(device.getCPUmodel());
+        writer.name("sdcard_size").value(device.getSdCardSize());
+        writer.name("sdcard_left").value(device.getSdCardLeft());
+        writer.name("memory").value(device.getDeviceMemory());
+        writer.endObject();
+    }
+
     // Write Beacons info into JsonWriter and ready to send request.
     private static void writeBeaconsQueryPost(JsonWriter writer, Collection<Beacon> toQuery, Location lastBeen) throws IOException {
         writer.beginObject();
@@ -66,6 +82,17 @@ public class Network {
         writer.beginObject();
         writer.name("location");
         writeLocation(writer, location);
+        writer.endObject();
+        writer.close();
+    }
+
+    // Write Basic info into JsonWriter and ready to send request.
+    private static void writeBasicInfoQueryPost(JsonWriter writer, Collection<App> apps, DeviceInfo device) throws IOException {
+        writer.beginObject();
+        writer.name("app_list");
+        Utils.writeToJsonArray(writer, apps);
+        writer.name("device_info");
+        writeDeviceInfo(writer, device);
         writer.endObject();
         writer.close();
     }
@@ -122,8 +149,8 @@ public class Network {
         return new TOI(_while, _when);
     }
 
-    // Read result from a JsonReader and Transform the result to a BeaconWithSenz object.
-    private static ArrayList<Senz> readResult(JsonReader reader) throws IOException {
+    // Read Senz result from a JsonReader.
+    private static ArrayList<Senz> readSenzResult(JsonReader reader) throws IOException {
         String name, result = null;
         ArrayList<Senz> senzes = new ArrayList<Senz>();
         TOI toi = new TOI("null", "null");
@@ -176,6 +203,11 @@ public class Network {
         Senz senz = new Senz("null", "null", toi._while, toi._when, poi._at, "null", "null", poi._poi_group);
         senzes.add(senz);
         return senzes;
+    }
+
+    // Read Static Info result from a JsonReader.
+    private static StaticInfo readStaticInfoResult(JsonReader reader) throws IOException {
+        return new StaticInfo();
     }
 
     private interface QueryWriter {
@@ -240,7 +272,7 @@ public class Network {
                 new ResultReader<ArrayList<Senz>>() {
                     @Override
                     public ArrayList<Senz> read(InputStream is) throws IOException {
-                        return readResult(new JsonReader(new InputStreamReader(is)));
+                        return readSenzResult(new JsonReader(new InputStreamReader(is)));
                     }
                 });
     }
@@ -267,12 +299,12 @@ public class Network {
                 new ResultReader<ArrayList<Senz>>() {
                     @Override
                     public ArrayList<Senz> read(InputStream is) throws IOException {
-                        return readResult(new JsonReader(new InputStreamReader(is)));
+                        return readSenzResult(new JsonReader(new InputStreamReader(is)));
                     }
                 });
     }
 
-    // Query with Basic info
+    // Query with Basic info。
     public static StaticInfo queryBasicInfo(final Collection<App> apps, final DeviceInfo device) throws IOException {
         return doQuery(
                 new URL(queryUrl + "beacons"),
@@ -281,22 +313,20 @@ public class Network {
                     // This callback will write the location and beacons info into os.
                     public void write(OutputStream os) throws IOException {
                         // Init the StringWriter sized fo 100
-                        StringWriter sw = new StringWriter(100);
+                        StringWriter sw = new StringWriter(200);
                         // Write the beacons info and location into StringWriter.
-                        //writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
+                        writeBasicInfoQueryPost(new JsonWriter(sw), apps, device);
                         L.i("[Network] The sending message is: " + sw.toString());
                         // Write location and beacons info into a JsonWriter,
                         // which Creates a new instance that writes a JSON-encoded stream to os.
                         // The os will return to be the post's para
-                        //writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
+                        writeBasicInfoQueryPost(new JsonWriter(new OutputStreamWriter(os)), apps, device);
                     }
                 },
                 new ResultReader<StaticInfo>() {
                     @Override
                     public StaticInfo read(InputStream is) throws IOException {
-                        //return readResult(new JsonReader(new InputStreamReader(is)));
-                        StaticInfo staticInfo = new StaticInfo();
-                        return staticInfo;
+                        return readStaticInfoResult(new JsonReader(new InputStreamReader(is)));
                     }
                 });
 

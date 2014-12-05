@@ -72,7 +72,7 @@ public class Beacon implements Parcelable, Jsonable {
 
     public void writeToJsonNoBeginEnd(JsonWriter writer) throws IOException {
         writer.name("uuid").value(this.getUUID().toString());
-        writer.name("mac").value(this.getMAC().toString());
+        writer.name("mac").value(this.getMAC());
         writer.name("major").value(this.getMajor());
         writer.name("minor").value(this.getMinor());
         writer.name("mpower").value(this.getMPower());
