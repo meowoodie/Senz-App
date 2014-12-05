@@ -209,7 +209,6 @@ public class Network {
                 // Url's connection can be used to output(or input), if you want the connection output, then set it true.
                 urlConnection.setDoOutput(true);
                 urlConnection.setChunkedStreamingMode(0);
-                L.i("test!");
             }
             // Write the sending message.
             w.write(urlConnection.getOutputStream());
