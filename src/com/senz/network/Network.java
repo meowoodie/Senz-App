@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import com.senz.core.*;
+import com.senz.service.DeviceInfo;
 import com.senz.utils.L;
 
 /***********************************************************************************************************************
@@ -272,9 +273,34 @@ public class Network {
     }
 
     // Query with Basic info
-    public static StaticInfo queryBasicInfo() throws IOException {
-        StaticInfo staticInfo = new StaticInfo();
-        return staticInfo;
+    public static StaticInfo queryBasicInfo(final Collection<App> apps, final DeviceInfo device) throws IOException {
+        return doQuery(
+                new URL(queryUrl + "beacons"),
+                new QueryWriter() {
+                    @Override
+                    // This callback will write the location and beacons info into os.
+                    public void write(OutputStream os) throws IOException {
+                        // Init the StringWriter sized fo 100
+                        StringWriter sw = new StringWriter(100);
+                        // Write the beacons info and location into StringWriter.
+                        //writeBeaconsQueryPost(new JsonWriter(sw), toQuery, lastBeen);
+                        L.i("[Network] The sending message is: " + sw.toString());
+                        // Write location and beacons info into a JsonWriter,
+                        // which Creates a new instance that writes a JSON-encoded stream to os.
+                        // The os will return to be the post's para
+                        //writeBeaconsQueryPost(new JsonWriter(new OutputStreamWriter(os)), toQuery, lastBeen);
+                    }
+                },
+                new ResultReader<StaticInfo>() {
+                    @Override
+                    public StaticInfo read(InputStream is) throws IOException {
+                        //return readResult(new JsonReader(new InputStreamReader(is)));
+                        StaticInfo staticInfo = new StaticInfo();
+                        return staticInfo;
+                    }
+                });
+
+
     }
 
     public static class ResultNotPresentException extends IOException {

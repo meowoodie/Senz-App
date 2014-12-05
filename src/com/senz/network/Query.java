@@ -97,7 +97,7 @@ public class Query {
                 L.i("query running for basic info");
                 //return senzesFromBeacons(beacons, location);
                 //return Network.queryBeacons(beacons, location);
-                return Network.queryBasicInfo();
+                return Network.queryBasicInfo(apps, device);
             }
 
             @Override
