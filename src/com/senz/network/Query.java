@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Collection;
 import java.io.IOException;
-import com.senz.core.Senz;
-import com.senz.core.Beacon;
-import com.senz.core.BeaconWithSenz;
+
+import com.senz.core.*;
 import com.senz.network.Cache;
 import com.senz.network.Network;
+import com.senz.service.DeviceInfo;
 import com.senz.utils.Asyncfied;
 import com.senz.utils.L;
 
@@ -88,9 +88,40 @@ public class Query {
         });
     }
 
+    // It seems like senzesFromLocationAsync. No more comment.
+    // The only difference is runAndReturn(), it will run senzesFromBeacons().
+    static public void staticInfoFromBasicInfoAsync(final Collection<App> apps, final DeviceInfo device, final StaticInfoReadyCallback cb, final ErrorHandler eh) {
+        Asyncfied.runAsyncfiable(new Asyncfied.Asyncfiable<StaticInfo>() {
+            @Override
+            public StaticInfo runAndReturn() throws IOException {
+                L.i("query running for basic info");
+                //return senzesFromBeacons(beacons, location);
+                //return Network.queryBeacons(beacons, location);
+                return Network.queryBasicInfo();
+            }
+
+            @Override
+            public void onReturn(StaticInfo result) {
+                L.i("query returnning");
+                //L.i(" - query senz: " + result.toString());
+                cb.onStaticInfoReady(result);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                L.e("query beacons error");
+                eh.onError(e);
+            }
+        });
+    }
+
     // It's an interface for user to define callback, when avoscloud server return the senz info.
     public interface SenzReadyCallback {
         public void onSenzReady(ArrayList<Senz> senzes);
+    }
+    // It's an interface for user to define callback, when avoscloud server return the static info.
+    public interface StaticInfoReadyCallback {
+        public void onStaticInfoReady(StaticInfo staticinfo);
     }
     // It's an interface for user to define callback, when send query request throw a error.
     public interface ErrorHandler {

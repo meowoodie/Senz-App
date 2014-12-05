@@ -18,13 +18,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
+import com.senz.core.*;
 import com.senz.utils.L;
-import com.senz.core.Senz;
-import com.senz.core.Utils;
-import com.senz.core.Beacon;
-import com.senz.core.POI;
-import com.senz.core.TOI;
-import com.senz.core.BeaconWithSenz;
 
 /***********************************************************************************************************************
  * @ClassName:   Network
@@ -273,6 +269,12 @@ public class Network {
                         return readResult(new JsonReader(new InputStreamReader(is)));
                     }
                 });
+    }
+
+    // Query with Basic info
+    public static StaticInfo queryBasicInfo() throws IOException {
+        StaticInfo staticInfo = new StaticInfo();
+        return staticInfo;
     }
 
     public static class ResultNotPresentException extends IOException {
