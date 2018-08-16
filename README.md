@@ -1,4 +1,4 @@
 Senz-App
 ========
 
-It's an application of Senz+ SDK
+It's an Android SDK for Senz+ App
